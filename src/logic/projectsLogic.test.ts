@@ -100,6 +100,17 @@ describe('project tasks and timeline', () => {
   });
 });
 
+describe('timeline from records', () => {
+  it('reads decisions and notes written straight into the data hub, and ignores stored duplicates', () => {
+    const project = proj({ id: 'p1', created_at: ago(30) });
+    const decisions = [{ id: 'D1', project_id: 'p1', workstream_id: null, date: '2026-10-06', decision: 'Hold Austria', context: null, people_ids: [], created_at: ago(1) }];
+    const notes = [{ id: 'N1', project_id: 'p1', workstream_id: null, body: 'Went well', created_at: ago(2) }];
+    const stored: ProjectEvent[] = [{ id: 'e', project_id: 'p1', workstream_id: null, type: 'decision_recorded', at: ago(1), title: 'Hold Austria', ref_id: 'D1' }];
+    const out = buildTimeline(stored, [], 'p1', null, { project, workstreams: [], decisions, notes });
+    expect(out.map((e) => e.type)).toEqual(['decision_recorded', 'note_added', 'project_created']);
+  });
+});
+
 describe('seed matches the brief', () => {
   const seed = buildSeed(now);
   const byName = (name: string) => seed.projects.find((p) => p.name === name)!;

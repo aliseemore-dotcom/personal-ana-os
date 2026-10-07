@@ -9,6 +9,10 @@ npm test           # logic tests (attention rules, scoring, today model, actions
 npm run build
 ```
 
+## Data source
+The live data source is the Google Sheets Data Hub. See [docs/DATA_HUB.md](docs/DATA_HUB.md) for setup, security, freshness and write-back.
+Set `VITE_DATA_SOURCE=sheets` on Vercel. Without it the app shows demo data held in the browser.
+
 ## Connect Supabase
 1. Run `supabase/migrations/0001_today_v1.sql`, then `0002_tasks_v1.sql` and `0003_projects_v1.sql` (tables, one-focus index, `set_focus()` RPC, people, task history, RLS on every table).
 2. Copy `.env.example` to `.env.local` and set `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY`.

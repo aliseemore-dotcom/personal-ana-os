@@ -180,6 +180,19 @@ export const t = {
   },
 
   demo: 'Demo data on this device',
+  sync: {
+    last: (time: string) => `Last synced ${time}`,
+    waiting: 'Syncing…',
+    refresh: 'Refresh',
+    stale: 'Data could not be refreshed. Showing the most recently available information.',
+    readOnly: 'Read-only',
+  },
+  access: {
+    title: 'Open Personal OS',
+    body: 'This dashboard is private. Enter the access key to continue.',
+    placeholder: 'Access key',
+    open: 'Open',
+  },
   fmtDate: fmt,
   loading: 'Loading your day…',
   errors: {

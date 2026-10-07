@@ -1,4 +1,4 @@
-import type { Project, ProjectCategory, ProjectEvent, ProjectStatus, Task, Health, Workstream } from '../domain/types';
+import type { Project, ProjectCategory, ProjectDecision, ProjectEvent, ProjectNote, ProjectStatus, Task, Health, Workstream } from '../domain/types';
 import { dateKey } from '../domain/dates';
 import { matchesQuery } from './filters';
 import type { ProjectAssessment, Signal } from './projectHealth';
@@ -59,15 +59,36 @@ export function splitTasks(tasks: Task[], now: Date): Record<TaskView, Task[]> {
   return out;
 }
 
+export interface TimelineRecords {
+  project: Project;
+  workstreams: Workstream[];
+  decisions: ProjectDecision[];
+  notes: ProjectNote[];
+}
+
+const DERIVED: ProjectEvent['type'][] = ['project_created', 'workstream_added', 'decision_recorded', 'note_added'];
+
 /**
  * Timeline = stored project events + task completions read straight from the tasks,
  * so completing a task anywhere never needs a second write.
+ * When the records themselves are given (the Data Hub case), project creation, workstreams,
+ * decisions and notes are read from them too, so a decision someone wrote straight into the
+ * sheet shows up, and a stored duplicate of the same event is ignored.
  */
-export function buildTimeline(events: ProjectEvent[], tasks: Task[], projectId: string, workstreamId: string | null): ProjectEvent[] {
+export function buildTimeline(events: ProjectEvent[], tasks: Task[], projectId: string, workstreamId: string | null, records?: TimelineRecords): ProjectEvent[] {
+  const fromRecords: ProjectEvent[] = records
+    ? [
+        { id: `created-${records.project.id}`, project_id: projectId, workstream_id: null, type: 'project_created', at: records.project.created_at, title: records.project.name, ref_id: null },
+        ...records.workstreams.map<ProjectEvent>((w) => ({ id: `ws-${w.id}`, project_id: projectId, workstream_id: w.id, type: 'workstream_added', at: w.created_at, title: w.name, ref_id: w.id })),
+        ...records.decisions.filter((d) => d.project_id === projectId).map<ProjectEvent>((d) => ({ id: `dec-${d.id}`, project_id: projectId, workstream_id: d.workstream_id, type: 'decision_recorded', at: d.created_at, title: d.decision, ref_id: d.id })),
+        ...records.notes.filter((n) => n.project_id === projectId).map<ProjectEvent>((n) => ({ id: `note-${n.id}`, project_id: projectId, workstream_id: n.workstream_id, type: 'note_added', at: n.created_at, title: n.body.slice(0, 80), ref_id: n.id })),
+      ]
+    : [];
+  const stored = records ? events.filter((e) => !DERIVED.includes(e.type)) : events;
   const derived: ProjectEvent[] = tasks
     .filter((t) => t.status === 'done' && t.completed_at && t.project_id === projectId)
     .map((t) => ({ id: `done-${t.id}`, project_id: projectId, workstream_id: t.workstream_id, type: 'task_completed', at: t.completed_at!, title: t.title, ref_id: t.id }));
-  return [...events.filter((e) => e.project_id === projectId), ...derived]
+  return [...stored.filter((e) => e.project_id === projectId), ...fromRecords, ...derived]
     .filter((e) => !workstreamId || e.workstream_id === workstreamId)
     .sort((a, b) => b.at.localeCompare(a.at));
 }

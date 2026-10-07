@@ -14,6 +14,8 @@ const Cell = ({ label, children, accent }: { label: string; children: React.Reac
   </div>
 );
 
+const has = (v: string | null | undefined) => Boolean(v && v.trim());
+
 const Text = ({ v }: { v: string | null | undefined }) => (v && v.trim() ? <>{v}</> : <span className="rg-muted">{t.hq.notSet}</span>);
 
 /** The executive brief: where the project stands, readable in a few seconds. Editable in place. */
@@ -115,12 +117,14 @@ export function Brief({ target, assessment }: { target: Target; assessment: Proj
     <section className="rg-card pj-brief" aria-label="Brief">
       <button className="td-link pj-brief__edit" onClick={open}><Pencil size={14} /> {t.hq.edit}</button>
       <div className="pj-brief__grid">
-        {target.kind === 'project' && <Cell label={t.hq.objective}><Text v={target.project.objective} /></Cell>}
-        <Cell label={t.hq.current}><Text v={target.kind === 'project' ? target.project.status_note : target.ws.summary} /></Cell>
+        {target.kind === 'project' && has(target.project.objective) && <Cell label={t.hq.objective}><Text v={target.project.objective} /></Cell>}
+        {has(target.kind === 'project' ? target.project.status_note : target.ws.summary) && (
+          <Cell label={t.hq.current}><Text v={target.kind === 'project' ? target.project.status_note : target.ws.summary} /></Cell>
+        )}
         <Cell label={t.hq.next} accent>
           {next ? <>{next.text}{next.from === 'task' && <span className="rg-small rg-muted pj-brief__from"> · {t.hq.from}</span>}</> : <span className="rg-muted">{t.hq.notSet}</span>}
         </Cell>
-        <Cell label={t.hq.blocker}><Text v={src.blocker} /></Cell>
+        {has(src.blocker) && <Cell label={t.hq.blocker}><Text v={src.blocker} /></Cell>}
         <Cell label={t.hq.milestone}>
           <Text v={src.next_milestone} />
           {src.next_milestone && milestoneDate && <span className="rg-small rg-muted"> · {t.fmtDate(milestoneDate)}</span>}

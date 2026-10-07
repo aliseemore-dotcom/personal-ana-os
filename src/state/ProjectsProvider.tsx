@@ -99,6 +99,8 @@ export function ProjectsProvider({ repo, children }: { repo: Repository; childre
     }
   }, [repo]);
 
+  useEffect(() => repo.sync?.onData(() => void refresh()), [repo, refresh]);
+
   useEffect(() => {
     void refresh();
     const id = window.setInterval(refresh, 60_000);
@@ -191,6 +193,7 @@ export function ProjectsProvider({ repo, children }: { repo: Repository; childre
 
       addWorkstream(project_id, name, type, metadata) {
         const w = newWorkstream({ project_id, name: name.trim(), type, metadata: metadata ?? {} }, new Date());
+        if (repo.nextId) w.id = repo.nextId('workstream', ref.current.workstreams.map((x) => x.id));
         record(project_id, eventOf(project_id, w.id, 'workstream_added', w.name, w.id), () => setWorkstreams((all) => [...all, w]), () => repo.createWorkstream(w));
       },
 
@@ -222,13 +225,14 @@ export function ProjectsProvider({ repo, children }: { repo: Repository; childre
         }
         const rec: ProjectDecision = {
           id: crypto.randomUUID(), project_id: d.project_id, workstream_id: d.workstream_id, date: d.date, decision: d.decision.trim(),
-          context: d.context.trim() || null, people_ids: ids, created_at: new Date().toISOString(),
+          context: d.context.trim() || null, people_ids: ids, people_names: d.people, created_at: new Date().toISOString(),
         };
+        if (repo.nextId) rec.id = repo.nextId('decision', ref.current.decisions.map((x) => x.id));
         record(d.project_id, eventOf(d.project_id, d.workstream_id, 'decision_recorded', rec.decision, rec.id), () => setDecisions((all) => [rec, ...all]), () => repo.createDecision(rec));
       },
 
       addNote(project_id, workstream_id, body) {
-        const n: ProjectNote = { id: crypto.randomUUID(), project_id, workstream_id, body: body.trim(), created_at: new Date().toISOString() };
+        const n: ProjectNote = { id: repo.nextId ? repo.nextId('note', ref.current.notes.map((x) => x.id)) : crypto.randomUUID(), project_id, workstream_id, body: body.trim(), created_at: new Date().toISOString() };
         record(project_id, eventOf(project_id, workstream_id, 'note_added', n.body.slice(0, 80), n.id), () => setNotes((all) => [n, ...all]), () => repo.createNote(n));
       },
       deleteNote(id) {

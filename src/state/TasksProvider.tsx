@@ -114,6 +114,9 @@ export function TasksProvider({ repo, children }: { repo: Repository; children: 
     };
   }, [refresh]);
 
+  // When the data source refreshes (manual Refresh), show what it now holds.
+  useEffect(() => repo.sync?.onData(() => void refresh()), [repo, refresh]);
+
   /** Optimistic write: apply now, persist in the background, roll back on failure. */
   const mutate = useCallback(
     (apply: () => void, rollback: () => void, persist: () => Promise<void>) => {
@@ -168,7 +171,9 @@ export function TasksProvider({ repo, children }: { repo: Repository; children: 
       setLingerFocus((f) => (f === id ? null : f));
     };
 
-    const createTask = (task: Task) => {
+    const createTask = (draft: Task) => {
+      // A source with its own id style (TASK-036) proposes the id; otherwise the UUID stays.
+      const task = repo.nextId ? { ...draft, id: repo.nextId('task', tasksRef.current.map((x) => x.id)) } : draft;
       const snapshotTasks = tasksRef.current;
       mutate(
         () => setTasks((all) => [...all, task]),
@@ -298,6 +303,7 @@ export function TasksProvider({ repo, children }: { repo: Repository; children: 
         );
         const snapshotTasks = tasksRef.current;
         const snapshotCaps = capturesRef.current;
+        if (repo.nextId) task.id = repo.nextId('task', tasksRef.current.map((x) => x.id));
         mutate(
           () => {
             setTasks((all) => [...all, task]);

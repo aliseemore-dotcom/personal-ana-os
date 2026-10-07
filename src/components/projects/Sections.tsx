@@ -223,7 +223,7 @@ export function DecisionsSection({ scope }: { scope: Scope }) {
       <ul className="pj-rows">
         {list.map((d) => {
           const ws = !scope.ws ? wsName(d.workstream_id) : null;
-          const who = d.people_ids.map((id) => tasks.people.find((p) => p.id === id)?.name).filter(Boolean).join(', ');
+          const who = [...new Set([...d.people_ids.map((id) => tasks.people.find((p) => p.id === id)?.name), ...(d.people_names ?? [])].filter(Boolean))].join(', ');
           return (
             <li key={d.id} className="pj-row pj-row--decision">
               <p className="rg-label pj-row__date">{t.fmtDate(d.date)} {ws && <span className="rg-tag tk-tag-xs">{ws}</span>}</p>
@@ -329,7 +329,10 @@ export function TimelineSection({ scope }: { scope: Scope }) {
   const proj = useProjects();
   const tasks = useTasks();
   const wsName = useWsName();
-  const items = useMemo(() => buildTimeline(proj.events, tasks.tasks, scope.project.id, scope.ws?.id ?? null), [proj.events, tasks.tasks, scope.project.id, scope.ws]);
+  const items = useMemo(
+    () => buildTimeline(proj.events, tasks.tasks, scope.project.id, scope.ws?.id ?? null, { project: scope.project, workstreams: proj.workstreams.filter((w) => w.project_id === scope.project.id), decisions: proj.decisions, notes: proj.notes }),
+    [proj.events, proj.workstreams, proj.decisions, proj.notes, tasks.tasks, scope.project, scope.ws],
+  );
   if (items.length === 0) return <p className="td-empty td-empty--ink">{t.hqTimeline.empty}</p>;
   return (
     <ol className="pj-timeline">

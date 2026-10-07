@@ -181,3 +181,12 @@ button:disabled { cursor: default; opacity: .5; }
 @media (prefers-reduced-motion: reduce) {
   .td-task, .td-toast, .td-fab, .td-att__chev, .td-check { transition: none; }
 }
+
+/* Top bar: page tabs on the left, "Last synced" on the right */
+.td-topbar { display: flex; justify-content: space-between; align-items: center; gap: var(--space-3) var(--space-6); flex-wrap: wrap; }
+.td-sync { display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; }
+.td-sync[data-stale="true"] .rg-small { color: var(--ink); font-weight: 500; }
+.td-sync__btn { display: inline-flex; align-items: center; gap: 6px; }
+.td-spin { animation: td-spin 1s linear infinite; }
+@keyframes td-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .td-spin { animation: none; } }

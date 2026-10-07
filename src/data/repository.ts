@@ -8,8 +8,34 @@ import type {
  * implementations (Supabase, and a local demo store); the UI never knows which.
  * TODAY and TASKS share these same task records.
  */
+export interface SyncStatus {
+  /** When the data was last read from the source of truth; null until the first read. */
+  syncedAt: string | null;
+  /** The source could not be reached; what is shown is the last copy we had. */
+  stale: boolean;
+  refreshing: boolean;
+  /** False when the source is connected read-only. */
+  writable: boolean;
+}
+
+/** Present only for repositories backed by a remote source of truth (the Data Hub). */
+export interface SyncController {
+  getStatus(): SyncStatus;
+  /** Status changed (for the "Last synced" indicator). */
+  subscribe(fn: () => void): () => void;
+  /** New data arrived because of a refresh; providers reload from the repository. */
+  onData(fn: () => void): () => void;
+  /** Read the source again now (the manual Refresh action). */
+  refresh(): Promise<void>;
+}
+
 export interface Repository {
-  readonly kind: 'supabase' | 'local';
+  readonly kind: 'supabase' | 'local' | 'sheets';
+  readonly sync?: SyncController;
+  /** Proposes the id for a new record in the source's own style (e.g. TASK-036). Omit to use a UUID. */
+  nextId?(entity: 'task' | 'workstream' | 'decision' | 'note', existing: readonly string[]): string;
+  /** The question for a day, when the source provides them. */
+  getDailyQuestion?(date: string): Promise<string | null>;
   listTasks(): Promise<Task[]>;
   createTask(task: Task): Promise<void>;
   listProjects(): Promise<Project[]>;

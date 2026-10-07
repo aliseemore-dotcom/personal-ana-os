@@ -12,6 +12,12 @@ export const config = {
   calendarProvider: ((env.VITE_CALENDAR_PROVIDER as string) || 'mock') as 'mock' | 'google',
   /** How far ahead "Coming up" looks. */
   comingUpHours: 4,
+  dataSource: 'local' as DataSource,
 };
 
+export type DataSource = 'sheets' | 'supabase' | 'local';
+const requested = ((env.VITE_DATA_SOURCE as string) || '').toLowerCase();
+
 export const hasSupabase = Boolean(config.supabaseUrl && config.supabaseAnonKey);
+export const dataSource: DataSource = requested === 'sheets' ? 'sheets' : requested === 'local' ? 'local' : hasSupabase ? 'supabase' : 'local';
+config.dataSource = dataSource;

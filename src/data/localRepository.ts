@@ -7,7 +7,8 @@ import { normaliseTask } from '../logic/taskFactory';
 import type { Repository } from './repository';
 import { buildSeed } from './seed';
 
-const KEY = 'personal-os:v3';
+const DEMO_KEY = 'personal-os:v3';
+const AUX_KEY = 'personal-os:local-extras:v1';
 
 interface Store {
   tasks: Task[];
@@ -24,9 +25,13 @@ interface Store {
   projectEvents: ProjectEvent[];
 }
 
-function load(): Store {
+const emptyStore = (): Store => ({
+  tasks: [], projects: [], people: [], events: [], inbox: [], answers: [], workstreams: [], decisions: [], notes: [], documents: [], projectPeople: [], projectEvents: [],
+});
+
+function load(key: string, seed: boolean): Store {
   try {
-    const raw = localStorage.getItem(KEY);
+    const raw = localStorage.getItem(key);
     if (raw) {
       const s = JSON.parse(raw) as Store;
       return { ...s, tasks: s.tasks.map(normaliseTask), projects: s.projects.map(normaliseProject) };
@@ -34,18 +39,20 @@ function load(): Store {
   } catch {
     /* fall through to a fresh store */
   }
-  return { ...buildSeed(new Date()), answers: [] };
+  return seed ? { ...buildSeed(new Date()), answers: [] } : emptyStore();
 }
 
 /**
  * Demo/offline store in localStorage. It mirrors the Supabase behaviour
  * (single focus, ids, timestamps) so the UI can be developed without a backend.
  */
-export function createLocalRepository(): Repository {
-  let store = load();
+export function createLocalRepository(opts: { demo?: boolean } = {}): Repository {
+  const demo = opts.demo ?? true;
+  const key = demo ? DEMO_KEY : AUX_KEY;
+  let store = load(key, demo);
   const save = () => {
     try {
-      localStorage.setItem(KEY, JSON.stringify(store));
+      localStorage.setItem(key, JSON.stringify(store));
     } catch {
       /* private mode / quota: keep working in memory */
     }

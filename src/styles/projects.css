@@ -108,3 +108,4 @@ a.td-link { color: inherit; }
 }
 @media (prefers-reduced-motion: reduce) { .pj-card, .pj-ws__card { transition: none; } .pj-card:hover { transform: none; } }
 .pj-tabs .rg-tab, .pj-subtabs .rg-tab { white-space: nowrap; flex: none; }
+.rg-tab .rg-count { display: inline-grid; vertical-align: middle; margin-left: 4px; }

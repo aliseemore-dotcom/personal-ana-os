@@ -107,6 +107,8 @@ export interface ProjectDecision {
   decision: string;
   context: string | null;
   people_ids: string[];
+  /** Names as typed or as written in the data hub; shown when no Person record exists. */
+  people_names?: string[];
   created_at: string;
 }
 
