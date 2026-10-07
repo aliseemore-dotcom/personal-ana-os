@@ -10,7 +10,7 @@ import { DecisionActions } from './DecisionActions';
 /** The dark entry card on the page: the one accent of the TASKS screen. */
 export function CleanupCard({ count, onStart }: { count: number; onStart: () => void }) {
   return (
-    <section className="rg-card rg-card--inverse tk-cleanup" aria-labelledby="cleanup-title">
+    <section className="rg-card tk-cleanup" aria-labelledby="cleanup-title">
       <div className="td-clip" aria-hidden><div className="rg-card__glow tk-cleanup__glow" /></div>
       <h2 className="rg-label" id="cleanup-title">{t.cleanup.title}</h2>
       <p className="tk-cleanup__text">{t.cleanup.intro(count)}</p>

@@ -60,7 +60,7 @@ export function TasksSection({ scope }: { scope: Scope }) {
       <div className="rg-tabs pj-subtabs" role="tablist">
         {(Object.keys(groups) as TaskView[]).map((v) => (
           <button key={v} className="rg-tab" role="tab" aria-selected={view === v} onClick={() => setView(v)}>
-            {t.hqTasks.views[v]} <span className="pj-count">{groups[v].length}</span>
+            {t.hqTasks.views[v]} <span className="rg-count rg-count--sm">{groups[v].length}</span>
           </button>
         ))}
       </div>

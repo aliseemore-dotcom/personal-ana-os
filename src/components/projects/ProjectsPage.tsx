@@ -39,11 +39,11 @@ function Overview({ now }: { now: Date }) {
         {summary.lines.length === 0 ? (
           <p className="tk-summary__calm">{x.calm}</p>
         ) : (
-          <ul className="tk-obs">
+          <ul className="rg-list">
             {summary.lines.map((l, i) => (
-              <li key={`${l.code}-${i}`} className="tk-obs__item" data-tone={l.code === 'blocker' ? 'critical' : 'warn'}>
-                <span className="tk-obs__dot" aria-hidden />
-                {x.line(l)}
+              <li key={`${l.code}-${i}`}>
+                <span className={`rg-dot${l.tone === 'neutral' ? '' : ` rg-dot--${l.tone}`}`} aria-hidden />
+                <span>{x.line(l)}</span>
               </li>
             ))}
           </ul>

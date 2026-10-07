@@ -11,7 +11,7 @@ export function HealthTag({ health }: { health: Health }) {
   const cls = health === 'blocked' ? 'rg-tag--danger' : health === 'needs_attention' ? 'rg-tag--warning' : '';
   return (
     <span className={`rg-tag ${cls}`}>
-      <span className="rg-tag__dot" style={health === 'on_track' ? { background: 'var(--success-deep)' } : undefined} />
+      {health === 'on_track' ? <span className="rg-dot rg-dot--sm rg-dot--success" /> : <span className="rg-tag__dot" />}
       {t.projectsPage.healths[health]}
     </span>
   );

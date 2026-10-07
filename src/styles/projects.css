@@ -28,7 +28,7 @@
 .pj-card__body > p { margin: 0; }
 
 /* Placeholder cover */
-.pj-cover { position: relative; overflow: hidden; background: var(--canvas); background-image: var(--gradient-canvas); display: block; }
+.pj-cover { position: relative; overflow: hidden; background-color: var(--rose-100); background-image: var(--gradient-glow); background-repeat: no-repeat; background-size: 90% 160%; background-position: 100% 0; display: block; }
 .pj-cover--card { height: 148px; border-radius: var(--radius-lg) var(--radius-lg) 0 0; }
 .pj-cover--hq { width: 168px; height: 128px; border-radius: var(--radius-md); flex: none; }
 img.pj-cover { object-fit: cover; }
@@ -79,7 +79,6 @@ a.td-link { color: inherit; }
 .pj-tabs { align-self: flex-start; max-width: 100%; overflow-x: auto; }
 .pj-subtabs { align-self: flex-start; max-width: 100%; overflow-x: auto; background: var(--surface-soft); border-color: transparent; }
 .pj-subtabs .rg-tab[aria-selected="true"] { background: var(--surface-inverse); }
-.pj-count { font-variant-numeric: tabular-nums; opacity: .7; margin-left: 2px; }
 .pj-panel { overflow: visible; }
 .pj-section { display: flex; flex-direction: column; gap: var(--space-4); }
 .pj-section > p { margin: 0; }

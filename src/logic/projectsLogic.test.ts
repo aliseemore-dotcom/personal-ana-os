@@ -58,6 +58,16 @@ describe('projects summary, filters and views', () => {
     expect(s).toMatchObject({ total: 4, active: 2, needAttention: 1, noNextAction: 1 });
     expect(s.lines.map((l) => l.code)).toEqual(['waiting_long', 'no_next_action']);
   });
+  it('orders the lines by urgency: danger first, neutral last, and each carries its tone', () => {
+    const overdue = view(proj({ id: 'o', name: 'Overdue one', next_action: 'x' }), [task({ project_id: 'o', deadline: ago(3) })]);
+    const blocked = view(proj({ id: 'k', name: 'Blocked one', next_action: 'x', blocker: 'Awaiting pricing' }));
+    const s = buildProjectsSummary([overdue, blocked, empty, calm]);
+    expect(s.lines.map((l) => [l.tone, l.project])).toEqual([
+      ['danger', 'Blocked one'],
+      ['warning', 'Overdue one'],
+      ['neutral', 'Empty'],
+    ]);
+  });
   it('filters by category, status, health and search (including workstream names)', () => {
     expect(filterProjects(all, { ...EMPTY_PROJECT_FILTERS, category: 'business' }).map((v) => v.project.name)).toEqual(['Stuck']);
     expect(filterProjects(all, { ...EMPTY_PROJECT_FILTERS, health: 'needs_attention' })).toHaveLength(1);

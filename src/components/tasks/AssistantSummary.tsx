@@ -10,11 +10,11 @@ export function AssistantSummary({ summary }: { summary: Summary }) {
       {summary.observations.length === 0 ? (
         <p className="tk-summary__calm">{x.calm}</p>
       ) : (
-        <ul className="tk-obs">
+        <ul className="rg-list">
           {summary.observations.map((o) => (
-            <li key={o.code} className="tk-obs__item" data-tone={o.tone}>
-              <span className="tk-obs__dot" aria-hidden />
-              {x.observation(o)}
+            <li key={o.code}>
+              <span className={`rg-dot${o.tone === 'critical' ? ' rg-dot--danger' : o.tone === 'warn' ? ' rg-dot--warning' : ''}`} aria-hidden />
+              <span>{x.observation(o)}</span>
             </li>
           ))}
         </ul>

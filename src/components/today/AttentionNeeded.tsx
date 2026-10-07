@@ -6,10 +6,10 @@ import { t } from '../../strings';
 import { RescheduleMenu } from './menus';
 
 const GROUPS: AttentionGroup[] = ['overdue', 'waiting', 'forgotten'];
-const TAG: Record<AttentionGroup, string> = {
-  overdue: 'rg-tag rg-tag--danger',
-  waiting: 'rg-tag rg-tag--warning',
-  forgotten: 'rg-tag rg-tag--rose',
+const COUNT: Record<AttentionGroup, string> = {
+  overdue: 'rg-count rg-count--danger',
+  waiting: 'rg-count rg-count--warning',
+  forgotten: 'rg-count',
 };
 
 function Row({ item, now }: { item: AttentionItem; now: Date }) {
@@ -70,7 +70,7 @@ export function AttentionNeeded({ summary, now }: { summary: AttentionSummary; n
                 aria-expanded={active === g}
                 disabled={n === 0}
               >
-                <span className={`${TAG[g]} td-att__num`}>{n}</span>
+                <span className={n === 0 ? 'rg-count' : COUNT[g]}>{n}</span>
                 <span>{t.attention.groups[g]}</span>
                 <ChevronDown size={16} className="td-att__chev" data-open={active === g} />
               </button>

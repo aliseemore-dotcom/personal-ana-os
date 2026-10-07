@@ -1,13 +1,13 @@
 /* Rose Glass — CSS-переменные, собраны из tokens.json */
 
 :root, [data-theme="light"] {
-  --canvas: #f6d3da;
+  --canvas: #fdf7f8;
   --surface: #ffffff;
   --surface-soft: #f2f2f2;
   --surface-inverse: #1f1f1f;
-  --glass: rgba(255, 255, 255, 0.38);
-  --glass-strong: rgba(255, 255, 255, 0.62);
-  --glass-border: rgba(255, 255, 255, 0.65);
+  --glass: rgba(255, 255, 255, 0.72);
+  --glass-strong: rgba(255, 255, 255, 0.9);
+  --glass-border: rgba(31, 31, 31, 0.07);
   --line: rgba(31, 31, 31, 0.10);
   --ink: #1f1f1f;
   --ink-muted: #57524f;
@@ -32,8 +32,9 @@
   --chart-2: var(--success-deep);
   --chart-3: var(--warning-deep);
   --chart-area: var(--rose-300);
-  --shadow-glass: 0 24px 48px -16px rgba(154, 59, 81, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.7);
-  --shadow-card: 0 12px 32px -12px rgba(31, 31, 31, 0.18);
+  --shadow-glass: 0 16px 40px -20px rgba(154, 59, 81, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  --shadow-card: 0 12px 32px -16px rgba(31, 31, 31, 0.12);
+  --shadow-orb: inset 0 0 0 1px rgba(255, 255, 255, 0.6), inset 0 -2px 3px rgba(31, 31, 31, 0.10), 0 2px 5px -1px rgba(31, 31, 31, 0.20);
 }
 
 [data-theme="dark"] {
@@ -70,6 +71,7 @@
   --chart-area: var(--rose-300);
   --shadow-glass: 0 24px 48px -16px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.08);
   --shadow-card: 0 12px 32px -12px rgba(0, 0, 0, 0.7);
+  --shadow-orb: inset 0 0 0 1px rgba(255, 255, 255, 0.35), inset 0 -2px 3px rgba(0, 0, 0, 0.25), 0 2px 5px -1px rgba(0, 0, 0, 0.5);
 }
 
 :root {
@@ -84,11 +86,15 @@
   --radius-md: 20px;
   --radius-lg: 32px;
   --radius-pill: 999px;
-  --gradient-canvas: linear-gradient(180deg, #d9788b 0%, #e99aaa 40%, #f6d3da 100%);
+  --gradient-canvas: radial-gradient(70% 55% at 88% 0%, #f7d3db 0%, #fbe7ec 35%, #fdf7f8 65%, #ffffff 100%);
   --gradient-canvas-dark: radial-gradient(120% 80% at 75% 0%, #5a2c39 0%, #2a1a20 45%, #151214 100%);
-  --gradient-orb: radial-gradient(circle at 32% 30%, #ffffff 0%, #f8d5dc 22%, #e8899c 62%, #cf6179 100%);
-  --gradient-glow: radial-gradient(closest-side, rgba(232, 137, 156, 0.7) 0%, rgba(232, 137, 156, 0) 100%);
+  --gradient-orb: radial-gradient(circle at 32% 30%, #ffffff 0%, #fbe3e8 25%, #f2b5c2 65%, #e8899c 100%);
+  --gradient-glow: radial-gradient(closest-side, rgba(232, 137, 156, 0.4) 0%, rgba(232, 137, 156, 0) 100%);
   --gradient-sheen: linear-gradient(155deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0) 55%);
+  --gradient-orb-danger: radial-gradient(circle at 30% 28%, #f3b3c6 0%, #b0436a 38%, #7a1e3c 75%, #4f1027 100%);
+  --gradient-orb-warning: radial-gradient(circle at 30% 28%, #fffbea 0%, #f7e2a6 40%, #e2bf6a 85%, #c9a24a 100%);
+  --gradient-orb-success: radial-gradient(circle at 30% 28%, #f4fbf5 0%, #cfe5d3 40%, #8fbf9b 85%, #6fa37d 100%);
+  --gradient-orb-neutral: radial-gradient(circle at 30% 28%, #ffffff 0%, #e4e0e2 45%, #a9a2a5 100%);
   --blur-glass: 24px;
   --blur-strong: 40px;
   --font-sans: "Manrope", "Helvetica Neue", Arial, sans-serif;

@@ -22,7 +22,7 @@ export function UpcomingEvents({ events, now, error }: { events: CalendarEvent[]
               <li key={e.id} className="td-event" data-now={started}>
                 <time className="td-event__time">{hhmm(e.start)}</time>
                 <div>
-                  <p className="td-event__title">{e.title}</p>
+                  <p className="td-event__title">{started && <span className="rg-dot rg-dot--sm rg-dot--rose" aria-hidden />}{e.title}</p>
                   <p className="rg-small td-event__meta">
                     {started ? t.comingUp.now : t.comingUp.inMinutes(mins)}
                     {e.location ? ` · ${e.location}` : ''}

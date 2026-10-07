@@ -44,7 +44,7 @@ export function NeedsDecision({ items, lead, now, onOpen }: { items: DecisionIte
     <section className="rg-card tk-decisions" aria-labelledby="dec-title">
       <div className="td-section-head">
         <h2 className="rg-h2" id="dec-title">{t.decision.title}</h2>
-        {items.length > 0 && <span className="rg-tag rg-tag--rose">{items.length}</span>}
+        {items.length > 0 && <span className={`rg-count${lead.overdue > 0 ? ' rg-count--danger' : ' rg-count--warning'}`} aria-label={`${items.length} items`}>{items.length}</span>}
       </div>
       {items.length === 0 ? (
         <p className="td-empty td-empty--ink">{t.decision.none}</p>

@@ -74,7 +74,7 @@ function Card({ task, now, project, onOpen, onMove, onDragStart, onDragEnd }: { 
       </div>
       {project && <p className="rg-small tk-card__project">{project}</p>}
       <div className="tk-card__meta">
-        <span className="tk-prio" data-p={task.priority}><span className="tk-prio__dot" />{t.priorities[task.priority]}</span>
+        <span className="tk-prio"><span className={`rg-dot rg-dot--sm${task.priority === 'high' ? ' rg-dot--rose' : ''}`} style={task.priority === 'low' ? { opacity: 0.45 } : undefined} />{t.priorities[task.priority]}</span>
         {task.deadline && task.status !== 'done' && (
           <span className={`rg-small${overdue ? ' tk-overdue' : ''}`}>
             {overdue ? t.overdueTag(Math.max(1, calendarDaysBetween(new Date(task.deadline), now))) : t.board.deadline(task.deadline)}
@@ -169,7 +169,7 @@ export function Board({
               ) : (
                 <h3 className="rg-label">{t.board.columns[status]}</h3>
               )}
-              <span className="tk-col__count">{count}</span>
+              <span className={`rg-count rg-count--sm${overLimit ? ' rg-count--warning' : ''}`}>{count}</span>
               {status === 'in_progress' && (
                 <span className={`rg-tag ${overLimit || atLimit ? 'rg-tag--warning' : ''} tk-tag-xs`} title={`${t.wip.cancel}`}>
                   {overLimit || atLimit ? <span className="rg-tag__dot" /> : null}
