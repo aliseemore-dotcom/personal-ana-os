@@ -1,4 +1,7 @@
-import type { DailyAnswer, InboxItem, Person, Project, Task, TaskEvent, TaskPatch } from '../domain/types';
+import type {
+  DailyAnswer, InboxItem, Person, Project, ProjectDecision, ProjectDocument, ProjectEvent, ProjectNote, ProjectPatch, ProjectPerson,
+  Task, TaskEvent, TaskPatch, Workstream, WorkstreamPatch,
+} from '../domain/types';
 
 /**
  * Everything the UI persists goes through this interface. There are two
@@ -15,8 +18,28 @@ export interface Repository {
   setFocus(id: string | null): Promise<void>;
   deleteTask(id: string): Promise<void>;
 
+  updateProject(id: string, patch: ProjectPatch): Promise<void>;
+  listWorkstreams(): Promise<Workstream[]>;
+  createWorkstream(w: Workstream): Promise<void>;
+  updateWorkstream(id: string, patch: WorkstreamPatch): Promise<void>;
+  listDecisions(): Promise<ProjectDecision[]>;
+  createDecision(d: ProjectDecision): Promise<void>;
+  deleteDecision(id: string): Promise<void>;
+  listNotes(): Promise<ProjectNote[]>;
+  createNote(n: ProjectNote): Promise<void>;
+  deleteNote(id: string): Promise<void>;
+  listDocuments(): Promise<ProjectDocument[]>;
+  createDocument(d: ProjectDocument): Promise<void>;
+  deleteDocument(id: string): Promise<void>;
+  listProjectPeople(): Promise<ProjectPerson[]>;
+  saveProjectPerson(link: ProjectPerson): Promise<void>;
+  deleteProjectPerson(id: string): Promise<void>;
+  listProjectEvents(): Promise<ProjectEvent[]>;
+  addProjectEvent(e: ProjectEvent): Promise<void>;
+
   listPeople(): Promise<Person[]>;
   createPerson(person: Person): Promise<void>;
+  updatePerson(id: string, patch: Partial<Person>): Promise<void>;
 
   addTaskEvents(events: TaskEvent[]): Promise<void>;
   listTaskEvents(taskId: string): Promise<TaskEvent[]>;

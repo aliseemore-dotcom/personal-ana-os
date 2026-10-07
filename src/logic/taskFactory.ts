@@ -27,6 +27,7 @@ export function newTask(over: Partial<Task> & { title: string }, now: Date): Tas
     backlog_since: over.status === 'backlog' ? iso : null,
     reschedule_count: 0,
     last_reviewed_at: null,
+    workstream_id: null,
     ...over,
   };
 }

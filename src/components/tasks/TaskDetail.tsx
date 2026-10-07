@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { dateKey, endOfDay, fromDateKey } from '../../domain/dates';
 import type { Priority, Task, TaskEvent, TaskStatus } from '../../domain/types';
+import { useProjects } from '../../state/ProjectsProvider';
 import { useTasks } from '../../state/TasksProvider';
 import { t } from '../../strings';
 import { RescheduleMenu } from '../today/menus';
@@ -15,12 +16,14 @@ const STATUSES: TaskStatus[] = ['inbox', 'backlog', 'planned', 'in_progress', 'w
  */
 export function TaskDetail({ task, now, onClose, onMove }: { task: Task; now: Date; onClose: () => void; onMove?: (id: string, to: TaskStatus) => void }) {
   const api = useTasks();
+  const proj = useProjects();
   const personName = api.people.find((p) => p.id === task.assigned_person_id)?.name ?? '';
   const [f, setF] = useState({
     title: task.title,
     description: task.description ?? '',
     notes: task.notes ?? '',
     project: task.project_id ?? '',
+    workstream: task.workstream_id ?? '',
     person: personName,
     status: task.status,
     priority: task.priority,
@@ -50,6 +53,7 @@ export function TaskDetail({ task, now, onClose, onMove }: { task: Task; now: Da
       description: f.description.trim() || null,
       notes: f.notes.trim() || null,
       project_id: f.project || null,
+      workstream_id: f.project ? f.workstream || null : null,
       assigned_person_id: personId,
       priority: f.priority,
       deadline: f.deadline ? endOfDay(fromDateKey(f.deadline)).toISOString() : null,
@@ -82,11 +86,20 @@ export function TaskDetail({ task, now, onClose, onMove }: { task: Task; now: Da
         </label>
         <label className="td-field">
           <span className="rg-label">{t.detail.project}</span>
-          <select className="td-input" value={f.project} onChange={(e) => set('project', e.target.value)}>
+          <select className="td-input" value={f.project} onChange={(e) => setF((s) => ({ ...s, project: e.target.value, workstream: '' }))}>
             <option value="">{t.detail.noProject}</option>
             {[...api.projects.values()].map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
           </select>
         </label>
+        {proj.workstreams.some((w) => w.project_id === f.project) && (
+          <label className="td-field">
+            <span className="rg-label">{t.detail.workstream}</span>
+            <select className="td-input" value={f.workstream} onChange={(e) => set('workstream', e.target.value)}>
+              <option value="">{t.hq.wholeProject}</option>
+              {proj.workstreams.filter((w) => w.project_id === f.project).map((w) => <option key={w.id} value={w.id}>{w.name}</option>)}
+            </select>
+          </label>
+        )}
         <label className="td-field">
           <span className="rg-label">{t.dialog.status}</span>
           <select className="td-input" value={f.status} onChange={(e) => set('status', e.target.value as TaskStatus)}>

@@ -1,5 +1,9 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { DailyAnswer, InboxItem, Person, Project, Task, TaskEvent, TaskPatch } from '../domain/types';
+import type {
+  DailyAnswer, InboxItem, Person, Project, ProjectDecision, ProjectDocument, ProjectEvent, ProjectNote, ProjectPatch, ProjectPerson,
+  Task, TaskEvent, TaskPatch, Workstream, WorkstreamPatch,
+} from '../domain/types';
+import { normaliseProject } from '../logic/projectFactory';
 import { normaliseTask } from '../logic/taskFactory';
 import type { Repository } from './repository';
 
@@ -23,7 +27,7 @@ export function createSupabaseRepository(db: SupabaseClient): Repository {
     },
 
     async listPeople() {
-      const { data, error } = await db.from('people').select('id,name');
+      const { data, error } = await db.from('people').select('id,name,organisation');
       fail(error);
       return (data ?? []) as Person[];
     },
@@ -61,9 +65,99 @@ export function createSupabaseRepository(db: SupabaseClient): Repository {
     },
 
     async listProjects() {
-      const { data, error } = await db.from('projects').select('id,name,goal_id');
+      const { data, error } = await db.from('projects').select('*');
       fail(error);
-      return (data ?? []) as Project[];
+      return (data ?? []).map((r) => normaliseProject(r as Project));
+    },
+
+    async updateProject(id: string, patch: ProjectPatch) {
+      const { error } = await db.from('projects').update(patch).eq('id', id);
+      fail(error);
+    },
+
+    async listWorkstreams() {
+      const { data, error } = await db.from('workstreams').select('*');
+      fail(error);
+      return (data ?? []) as Workstream[];
+    },
+    async createWorkstream(w: Workstream) {
+      const { error } = await db.from('workstreams').insert(w);
+      fail(error);
+    },
+    async updateWorkstream(id: string, patch: WorkstreamPatch) {
+      const { error } = await db.from('workstreams').update(patch).eq('id', id);
+      fail(error);
+    },
+
+    async listDecisions() {
+      const { data, error } = await db.from('project_decisions').select('*').order('date', { ascending: false });
+      fail(error);
+      return (data ?? []) as ProjectDecision[];
+    },
+    async createDecision(d: ProjectDecision) {
+      const { error } = await db.from('project_decisions').insert(d);
+      fail(error);
+    },
+    async deleteDecision(id: string) {
+      const { error } = await db.from('project_decisions').delete().eq('id', id);
+      fail(error);
+    },
+
+    async listNotes() {
+      const { data, error } = await db.from('project_notes').select('*').order('created_at', { ascending: false });
+      fail(error);
+      return (data ?? []) as ProjectNote[];
+    },
+    async createNote(n: ProjectNote) {
+      const { error } = await db.from('project_notes').insert(n);
+      fail(error);
+    },
+    async deleteNote(id: string) {
+      const { error } = await db.from('project_notes').delete().eq('id', id);
+      fail(error);
+    },
+
+    async listDocuments() {
+      const { data, error } = await db.from('project_documents').select('*').order('created_at', { ascending: false });
+      fail(error);
+      return (data ?? []) as ProjectDocument[];
+    },
+    async createDocument(d: ProjectDocument) {
+      const { error } = await db.from('project_documents').insert(d);
+      fail(error);
+    },
+    async deleteDocument(id: string) {
+      const { error } = await db.from('project_documents').delete().eq('id', id);
+      fail(error);
+    },
+
+    async listProjectPeople() {
+      const { data, error } = await db.from('project_people').select('*');
+      fail(error);
+      return (data ?? []) as ProjectPerson[];
+    },
+    async saveProjectPerson(link: ProjectPerson) {
+      const { error } = await db.from('project_people').upsert(link);
+      fail(error);
+    },
+    async deleteProjectPerson(id: string) {
+      const { error } = await db.from('project_people').delete().eq('id', id);
+      fail(error);
+    },
+
+    async listProjectEvents() {
+      const { data, error } = await db.from('project_events').select('*').order('at', { ascending: false });
+      fail(error);
+      return (data ?? []) as ProjectEvent[];
+    },
+    async addProjectEvent(e: ProjectEvent) {
+      const { error } = await db.from('project_events').insert(e);
+      fail(error);
+    },
+
+    async updatePerson(id: string, patch: Partial<Person>) {
+      const { error } = await db.from('people').update(patch).eq('id', id);
+      fail(error);
     },
 
     async updateTask(id: string, patch: TaskPatch) {

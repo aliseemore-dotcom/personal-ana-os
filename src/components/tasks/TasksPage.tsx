@@ -24,7 +24,7 @@ import { WipDialog } from './WipDialog';
 const TH = DEFAULT_THRESHOLDS;
 
 /** Composition only: all interpretation lives in /logic. */
-export function TasksPage({ route, onNavigate }: { route: Route; onNavigate: (r: Route) => void }) {
+export function TasksPage({ route, onNavigate }: { route: Route; onNavigate: (hash: string) => void }) {
   const now = useNow();
   const api = useTasks();
   const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS);

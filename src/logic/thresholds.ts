@@ -15,6 +15,10 @@ export interface Thresholds {
   /** A task reviewed within this many days is left out of Weekly cleanup. */
   cleanupRecentReviewDays: number;
   cleanupMaxItems: number;
+  /** Project or workstream with no movement for this long needs a look. */
+  projectInactiveDays: number;
+  /** A project in Waiting for this long needs a follow-up. */
+  projectWaitingDays: number;
 }
 
 export const DEFAULT_THRESHOLDS: Thresholds = {
@@ -28,4 +32,6 @@ export const DEFAULT_THRESHOLDS: Thresholds = {
   largeBacklog: 25,
   cleanupRecentReviewDays: 7,
   cleanupMaxItems: 10,
+  projectInactiveDays: 14,
+  projectWaitingDays: 7,
 };

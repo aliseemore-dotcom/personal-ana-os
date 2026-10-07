@@ -17,6 +17,8 @@ export interface NewTaskInput {
   deadline?: string | null;
   priority?: Task['priority'];
   status?: TaskStatus;
+  workstream_id?: string | null;
+  scheduled_date?: string | null;
 }
 
 interface TasksApi {
@@ -52,6 +54,7 @@ interface TasksApi {
   dropCapture(id: string): void;
 
   ensurePerson(name: string): Promise<string | null>;
+  updatePerson(id: string, patch: Partial<Person>): void;
   loadEvents(taskId: string): Promise<TaskEvent[]>;
   notify(message: string): void;
 }
@@ -263,6 +266,8 @@ export function TasksProvider({ repo, children }: { repo: Repository; children: 
               title: input.title.trim(),
               status,
               project_id: input.project_id ?? null,
+              workstream_id: input.workstream_id ?? null,
+              scheduled_date: input.scheduled_date ?? null,
               deadline: input.deadline ?? null,
               priority: input.priority ?? 'medium',
               completed_at: status === 'done' ? now.toISOString() : null,
@@ -333,6 +338,14 @@ export function TasksProvider({ repo, children }: { repo: Repository; children: 
           return null;
         }
         return person.id;
+      },
+      updatePerson(id, patch) {
+        const snapshot = peopleRef.current;
+        mutate(
+          () => setPeople((p) => p.map((x) => (x.id === id ? { ...x, ...patch } : x))),
+          () => setPeople(snapshot),
+          () => repo.updatePerson(id, patch),
+        );
       },
       loadEvents(taskId) {
         return repo.listTaskEvents(taskId).catch(() => []);

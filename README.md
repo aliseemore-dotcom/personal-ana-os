@@ -1,4 +1,4 @@
-# Personal OS — TODAY and TASKS pages
+# Personal OS — TODAY, TASKS and PROJECTS pages
 
 One question: **what requires my attention right now?** Built with the Rose Glass design system (`docs/brand`; tokens and components in `src/styles`).
 
@@ -10,7 +10,7 @@ npm run build
 ```
 
 ## Connect Supabase
-1. Run `supabase/migrations/0001_today_v1.sql`, then `0002_tasks_v1.sql` (tables, one-focus index, `set_focus()` RPC, people, task history, RLS on every table).
+1. Run `supabase/migrations/0001_today_v1.sql`, then `0002_tasks_v1.sql` and `0003_projects_v1.sql` (tables, one-focus index, `set_focus()` RPC, people, task history, RLS on every table).
 2. Copy `.env.example` to `.env.local` and set `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY`.
 3. Enable email auth in Supabase; the app shows a magic-link sign-in because RLS requires a user.
 
@@ -41,6 +41,18 @@ Same task records as TODAY (one store, two views): scheduling for today on TASKS
 | History | `logic/bookkeeping.ts` | Every change passes through `applyChange`, which keeps `waiting_since`, `backlog_since`, `reschedule_count` and appends task events |
 | Thresholds | `logic/thresholds.ts` | All limits (5 working days, 30 days, WIP 5, …) in one place |
 
+## PROJECTS page
+Routes: `#projects` (card grid), `#projects/<project>` (Project HQ), `#projects/<project>/<workstream>` (the same HQ scoped to one opportunity, location, trip or workstream).
+
+| Piece | Where | Notes |
+|---|---|---|
+| Model | `domain/types.ts` | Project → Workstream → Tasks / Notes / Documents / Decisions / People links / Events. `cover_image` is reserved; v1 draws a branded placeholder |
+| Health | `logic/projectHealth.ts` | Computed from overdue tasks, milestone date, blocker, next action, waiting and inactivity. A stored manual health is the floor. A missing Next Action is noted, but alone does not mark a project as unhealthy |
+| Summary | `logic/projectsSummary.ts` | Calm interpretation ("Restaurant Expansion has been waiting for 9 days. Consider scheduling a follow-up.") |
+| Shared records | `ProjectsProvider` + `TasksProvider` | Tasks and people are the same records used by TODAY and TASKS. A person is linked to a project through `project_people`; the relationship lives on the link |
+| Timeline | `logic/projectViews.ts` | Stored events plus task completions read from the tasks themselves |
+| Containers | `workstream_kind` | Opportunities, locations, trips or workstreams are child records, never top-level cards. Specialist fields go in `metadata` |
+
 ## Notes and decisions
 - **Language:** the brand book says UI copy is Russian; the spec's examples are English, so v1 ships in English with all copy in `strings.ts` so a Russian set can drop in. Labels are sentence case per the brand (no all-caps).
 - **Quick capture** writes to `inbox_items` (id, content, created_at, status=`inbox`). Press `C` to open it.
@@ -51,4 +63,6 @@ Same task records as TODAY (one store, two views): scheduling for today on TASKS
 - **Rescheduling:** only moving a planned date later counts as a reschedule (3 or more flags repeated postponement).
 - **"Keep" / "Keep waiting"** record a review, which restarts the idle clocks for that task.
 - **TODAY** folds extra planned tasks behind "N more planned for today" instead of hiding them.
+- **Seed data:** project names, categories, workstreams and the Watford decision come from the brief. Opportunities carry no invented deal data. Demo tasks, two linked people and the Hotel & Investment Pipeline / Restaurant Expansion brief lines are example content.
+- **Documents** accept only http(s) links, stored as references.
 - Added beyond the spec: `blocks_note` (human reason for "blocks others"), `user_id` on every table, minimal `projects`/`goals` tables.

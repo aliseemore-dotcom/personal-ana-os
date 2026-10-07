@@ -1,6 +1,8 @@
 import type { AttentionItem } from './logic/attention';
 import type { Reason } from './logic/prioritisation';
-import type { Priority, TaskEvent, TaskStatus } from './domain/types';
+import type { Health, Priority, ProjectCategory, ProjectEvent, ProjectStatus, TaskEvent, TaskStatus, WorkstreamKind } from './domain/types';
+import type { ProjectLine } from './logic/projectsSummary';
+import type { Signal } from './logic/projectHealth';
 import type { DecisionAction, DecisionKind } from './logic/decisions';
 import type { CleanupKind } from './logic/cleanup';
 import type { Observation, RecommendationCode } from './logic/summary';
@@ -185,7 +187,7 @@ export const t = {
     save: 'That change did not save — it has been undone.',
   },
 
-  nav: { today: 'Today', tasks: 'Tasks', label: 'Pages' },
+  nav: { today: 'Today', tasks: 'Tasks', projects: 'Projects', label: 'Pages' },
 
   tasksPage: {
     title: 'Tasks',
@@ -382,6 +384,7 @@ export const t = {
   detail: {
     title: 'Task',
     project: 'Project',
+    workstream: 'Workstream',
     noProject: 'No project',
     person: 'Related person',
     notes: 'Notes',
@@ -430,5 +433,169 @@ export const t = {
       }
     })();
     return `${line} · ${when}`;
+  },
+
+  projectsPage: {
+    title: 'Projects',
+    subtitle: 'Where each area stands, and what happens next.',
+    label: 'Projects',
+    count: (n: number) => plural(n, 'project'),
+    active: (n: number) => `${n} active`,
+    attention: (n: number) => `${n} ${n === 1 ? 'needs' : 'need'} attention`,
+    calm: 'Nothing in your projects needs a decision right now.',
+    line: (l: ProjectLine): string => {
+      switch (l.code) {
+        case 'blocker':
+          return l.detail ? `${l.project}: ${l.detail.replace(/\.$/, '')}. Decide what would unblock it.` : `${l.project} has an open blocker.`;
+        case 'waiting_long':
+          return `${l.project} has been waiting for ${plural(l.n, 'day')}. Consider scheduling a follow-up.`;
+        case 'overdue_milestone':
+          return `The next milestone of ${l.project} has passed its date. Decide whether to reset it.`;
+        case 'overdue_tasks':
+          return `${l.project} has ${plural(l.n, 'overdue task')}. Decide what happens to each.`;
+        case 'workstream_stalled':
+          return `${plural(l.n, 'workstream has', 'workstreams have')} not moved for a while in ${l.project}.`;
+        case 'inactive':
+          return `${l.project} has not moved for ${plural(l.n, 'day')}. Is it still active?`;
+        case 'no_next_action':
+          return l.project ? `${l.project} has no Next Action.` : `${l.n} projects currently have no Next Action.`;
+        case 'calm':
+          return '';
+      }
+    },
+    categories: { '': 'All', work: 'Work', business: 'Business', personal: 'Personal' } as Record<ProjectCategory | '', string>,
+    categoryTabs: 'Category',
+    statuses: { active: 'Active', waiting: 'Waiting', on_hold: 'On hold', completed: 'Completed' } as Record<ProjectStatus, string>,
+    healths: { on_track: 'On track', needs_attention: 'Needs attention', blocked: 'Blocked' } as Record<Health, string>,
+    search: 'Search projects',
+    anyStatus: 'Any status',
+    anyHealth: 'Any health',
+    noMatch: 'No projects match these filters.',
+    clear: 'Clear',
+    next: 'Next',
+    noNext: 'No next action yet',
+    workstreamCount: (n: number, kind: WorkstreamKind) => plural(n, kind === 'opportunity' ? 'opportunity' : kind === 'location' ? 'location' : kind === 'trip' ? 'trip' : 'workstream', kind === 'opportunity' ? 'opportunities' : undefined),
+  },
+
+  hq: {
+    back: 'All projects',
+    backToProject: (name: string) => name,
+    objective: 'Objective',
+    current: 'Current status',
+    next: 'Next action',
+    blocker: 'Blocker',
+    milestone: 'Next milestone',
+    summary: 'Summary',
+    notSet: 'Not set yet',
+    from: 'Taken from tasks',
+    edit: 'Edit',
+    save: 'Save',
+    cancel: 'Cancel',
+    milestoneDate: 'Milestone date',
+    milestoneReached: 'Milestone reached',
+    statusLabel: 'Status',
+    healthLabel: 'Health',
+    manualHealth: 'Mark health',
+    editHint: 'Short and plain. Two to four sentences for the summary.',
+    attentionTitle: 'To notice',
+    signal: (s: Signal): string => {
+      switch (s.code) {
+        case 'blocker': return 'There is an open blocker.';
+        case 'overdue_milestone': return 'The milestone date has passed.';
+        case 'overdue_tasks': return `${plural(s.n, 'task is', 'tasks are')} overdue.`;
+        case 'no_next_action': return 'No Next Action is written and no task is lined up.';
+        case 'waiting_long': return `Waiting for ${plural(s.n, 'day')}. Consider a follow-up.`;
+        case 'inactive': return `No movement for ${plural(s.n, 'day')}.`;
+        case 'workstream_stalled': return `${plural(s.n, 'workstream has', 'workstreams have')} not moved for a while.`;
+      }
+    },
+    sections: { tasks: 'Tasks', people: 'People', decisions: 'Decisions', notes: 'Notes', documents: 'Documents', timeline: 'Timeline' },
+    nouns: {
+      workstream: { title: 'Workstreams', one: 'workstream', add: 'Add workstream', placeholder: 'Workstream name', empty: 'No workstreams yet. Add one to break the project into parts.' },
+      opportunity: { title: 'Opportunities', one: 'opportunity', add: 'Add opportunity', placeholder: 'Opportunity name', empty: 'No opportunities yet. Add the first one.' },
+      location: { title: 'Locations', one: 'location', add: 'Add location', placeholder: 'City or location', empty: 'No locations yet. Add the first market.' },
+      trip: { title: 'Trips', one: 'trip', add: 'Add trip', placeholder: 'Destination', empty: 'No trips yet. Add the first one.' },
+    } as Record<WorkstreamKind, { title: string; one: string; add: string; placeholder: string; empty: string }>,
+    wholeProject: 'Whole project',
+    completed: 'Completed',
+    showCompleted: (n: number) => `Show ${n} completed`,
+    hideCompleted: 'Hide completed',
+    tripDates: (a: string, b: string) => `${fmt(a)} – ${fmt(b)}`,
+    scopeHint: (name: string) => `Showing only ${name}.`,
+  },
+
+  hqTasks: {
+    views: { current: 'Current', upcoming: 'Upcoming', waiting: 'Waiting', completed: 'Completed' },
+    add: 'Add a task',
+    addBtn: 'Add',
+    empty: { current: 'Nothing is active right now.', upcoming: 'Nothing scheduled ahead.', waiting: 'Nothing is waiting.', completed: 'Nothing completed yet.' },
+    today: 'Schedule for today',
+    scheduledToday: 'On today',
+    openTask: 'Open task',
+    due: (iso: string) => `Due ${fmt(iso)}`,
+    planned: (d: string) => `Planned ${fmt(d)}`,
+  },
+
+  hqPeople: {
+    empty: 'No one is linked yet. Link the people who matter to this project.',
+    link: 'Link a person',
+    name: 'Person',
+    organisation: 'Organisation',
+    role: 'Role',
+    relationship: 'Relationship to project',
+    lastInteraction: 'Last interaction',
+    nextAction: 'Next action',
+    save: 'Save',
+    remove: 'Remove link',
+    edit: 'Edit',
+    note: 'People are shared across Personal OS; this only links them to the project.',
+    cancel: 'Cancel',
+  },
+
+  hqDecisions: {
+    empty: 'No decisions recorded yet. Record the next one, with its reason, so it is easy to find later.',
+    record: 'Record a decision',
+    date: 'Date',
+    decision: 'Decision',
+    context: 'Reason or context',
+    people: 'People involved',
+    peoplePlaceholder: 'Names, separated by commas',
+    related: 'Related to',
+    save: 'Save decision',
+    cancel: 'Cancel',
+    contextLabel: 'Context',
+  },
+
+  hqNotes: { empty: 'No notes yet.', placeholder: 'Write a note', add: 'Add note', remove: 'Delete note' },
+
+  hqDocs: {
+    empty: 'No documents linked yet. Add a link to a file in Drive or elsewhere.',
+    add: 'Add document',
+    name: 'Name',
+    type: 'Type',
+    url: 'Link',
+    urlHint: 'A web address, for example a Google Drive link.',
+    open: 'Open',
+    remove: 'Remove',
+    types: { document: 'Document', spreadsheet: 'Spreadsheet', presentation: 'Presentation', pdf: 'PDF', link: 'Link', other: 'Other' } as Record<string, string>,
+    badUrl: 'Enter a web address starting with http or https.',
+    updated: (iso: string) => `Updated ${fmt(iso)}`,
+  },
+
+  hqTimeline: {
+    empty: 'Nothing has happened yet.',
+    event: (e: ProjectEvent): string => {
+      const x = e.title ? `: ${e.title}` : '';
+      switch (e.type) {
+        case 'project_created': return 'Project created';
+        case 'status_changed': return `Status changed${x}`;
+        case 'task_completed': return `Task completed${x}`;
+        case 'decision_recorded': return `Decision recorded${x}`;
+        case 'document_added': return `Document added${x}`;
+        case 'milestone_reached': return `Milestone reached${x}`;
+        case 'workstream_added': return `Added${x}`;
+        case 'note_added': return `Note added${x}`;
+      }
+    },
   },
 };

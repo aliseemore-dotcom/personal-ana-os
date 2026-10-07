@@ -24,7 +24,7 @@ import { UpcomingEvents } from './UpcomingEvents';
  * Composition only. Every number and list on the page comes from the pure
  * functions in /logic, fed by the task store, the calendar service and the clock.
  */
-export function TodayPage({ repo, route, onNavigate, onSignOut }: { repo: Repository; route: Route; onNavigate: (r: Route) => void; onSignOut?: () => void }) {
+export function TodayPage({ repo, route, onNavigate, onSignOut }: { repo: Repository; route: Route; onNavigate: (hash: string) => void; onSignOut?: () => void }) {
   const now = useNow();
   const api = useTasks();
   const weather = useWeather();

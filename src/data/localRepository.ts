@@ -1,9 +1,13 @@
-import type { DailyAnswer, InboxItem, Person, Project, Task, TaskEvent, TaskPatch } from '../domain/types';
+import type {
+  DailyAnswer, InboxItem, Person, Project, ProjectDecision, ProjectDocument, ProjectEvent, ProjectNote, ProjectPatch, ProjectPerson,
+  Task, TaskEvent, TaskPatch, Workstream, WorkstreamPatch,
+} from '../domain/types';
+import { normaliseProject } from '../logic/projectFactory';
 import { normaliseTask } from '../logic/taskFactory';
 import type { Repository } from './repository';
 import { buildSeed } from './seed';
 
-const KEY = 'personal-os:v2';
+const KEY = 'personal-os:v3';
 
 interface Store {
   tasks: Task[];
@@ -12,6 +16,12 @@ interface Store {
   events: TaskEvent[];
   inbox: InboxItem[];
   answers: DailyAnswer[];
+  workstreams: Workstream[];
+  decisions: ProjectDecision[];
+  notes: ProjectNote[];
+  documents: ProjectDocument[];
+  projectPeople: ProjectPerson[];
+  projectEvents: ProjectEvent[];
 }
 
 function load(): Store {
@@ -19,7 +29,7 @@ function load(): Store {
     const raw = localStorage.getItem(KEY);
     if (raw) {
       const s = JSON.parse(raw) as Store;
-      return { ...s, tasks: s.tasks.map(normaliseTask) };
+      return { ...s, tasks: s.tasks.map(normaliseTask), projects: s.projects.map(normaliseProject) };
     }
   } catch {
     /* fall through to a fresh store */
@@ -64,6 +74,76 @@ export function createLocalRepository(): Repository {
     async deleteTask(id) {
       store.tasks = store.tasks.filter((t) => t.id !== id);
       store.events = store.events.filter((e) => e.task_id !== id);
+      save();
+    },
+    async updateProject(id, patch: ProjectPatch) {
+      store.projects = store.projects.map((p) => (p.id === id ? { ...p, ...patch, updated_at: new Date().toISOString() } : p));
+      save();
+    },
+    async listWorkstreams() {
+      return store.workstreams.map((w) => ({ ...w }));
+    },
+    async createWorkstream(w) {
+      store.workstreams = [...store.workstreams, w];
+      save();
+    },
+    async updateWorkstream(id, patch: WorkstreamPatch) {
+      store.workstreams = store.workstreams.map((w) => (w.id === id ? { ...w, ...patch, updated_at: new Date().toISOString() } : w));
+      save();
+    },
+    async listDecisions() {
+      return [...store.decisions];
+    },
+    async createDecision(d) {
+      store.decisions = [d, ...store.decisions];
+      save();
+    },
+    async deleteDecision(id) {
+      store.decisions = store.decisions.filter((x) => x.id !== id);
+      save();
+    },
+    async listNotes() {
+      return [...store.notes];
+    },
+    async createNote(n) {
+      store.notes = [n, ...store.notes];
+      save();
+    },
+    async deleteNote(id) {
+      store.notes = store.notes.filter((x) => x.id !== id);
+      save();
+    },
+    async listDocuments() {
+      return [...store.documents];
+    },
+    async createDocument(d) {
+      store.documents = [d, ...store.documents];
+      save();
+    },
+    async deleteDocument(id) {
+      store.documents = store.documents.filter((x) => x.id !== id);
+      save();
+    },
+    async listProjectPeople() {
+      return [...store.projectPeople];
+    },
+    async saveProjectPerson(link) {
+      store.projectPeople = [...store.projectPeople.filter((x) => x.id !== link.id), link];
+      save();
+    },
+    async deleteProjectPerson(id) {
+      store.projectPeople = store.projectPeople.filter((x) => x.id !== id);
+      save();
+    },
+    async listProjectEvents() {
+      return [...store.projectEvents];
+    },
+    async addProjectEvent(e) {
+      store.projectEvents = [e, ...store.projectEvents];
+      save();
+    },
+    async updatePerson(id, patch) {
+      store.people = store.people.map((p) => (p.id === id ? { ...p, ...patch } : p));
       save();
     },
     async listPeople() {
