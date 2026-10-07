@@ -1,8 +1,10 @@
+import { useState } from 'react';
 import type { TodayModel } from '../../logic/todayModel';
 import { t } from '../../strings';
 import { TaskRow } from './TaskRow';
 
 export function TodayTasks({ model, now, onOpen }: { model: TodayModel; now: Date; onOpen: (id: string) => void }) {
+  const [more, setMore] = useState(false);
   const empty = model.priority.length === 0 && model.quick.length === 0;
   return (
     <section className="rg-card td-tasks" aria-labelledby="tasks-title">
@@ -31,7 +33,18 @@ export function TodayTasks({ model, now, onOpen }: { model: TodayModel; now: Dat
         </>
       )}
 
-      {model.hiddenCount > 0 && <p className="rg-small rg-muted td-more">{t.tasks.more(model.hiddenCount)}</p>}
+      {model.hiddenCount > 0 && (
+        <>
+          <button className="td-link td-more" onClick={() => setMore((v) => !v)} aria-expanded={more}>
+            {more ? t.tasks.fewer : t.tasks.more(model.hiddenCount)}
+          </button>
+          {more && (
+            <ul className="td-list">
+              {model.hidden.map((s) => <TaskRow key={s.task.id} item={s} now={now} onOpen={onOpen} />)}
+            </ul>
+          )}
+        </>
+      )}
     </section>
   );
 }

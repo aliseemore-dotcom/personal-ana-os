@@ -42,3 +42,34 @@ export function doNowPatch(now: Date): TaskPatch {
 export function touchPatch(now: Date): TaskPatch {
   return { last_activity_at: now.toISOString() };
 }
+
+/** Keep / Keep waiting: a decision was made, so the idle clocks restart. */
+export function reviewPatch(now: Date): TaskPatch {
+  return { last_reviewed_at: now.toISOString() };
+}
+
+export function followUpPatch(now: Date): TaskPatch {
+  const iso = now.toISOString();
+  return { last_activity_at: iso, last_reviewed_at: iso };
+}
+
+export function waitPatch(): TaskPatch {
+  return { status: 'waiting', is_focus: false };
+}
+
+export function delegatePatch(name: string): TaskPatch {
+  return { status: 'waiting', delegated_to: name.trim(), is_focus: false };
+}
+
+/** Stop, but keep: back to Planned and off today's plan. */
+export function pausePatch(): TaskPatch {
+  return { status: 'planned', scheduled_date: null, is_focus: false };
+}
+
+/** What dropping a card into a Kanban column means for the task. */
+export function statusPatch(task: Task, to: TaskStatus, now: Date): TaskPatch {
+  if (to === 'done') return completePatch(now);
+  if (task.status === 'done') return reopenPatch(to, now);
+  if (to === 'backlog') return backlogPatch(now);
+  return { status: to, is_focus: to === 'inbox' ? false : task.is_focus };
+}

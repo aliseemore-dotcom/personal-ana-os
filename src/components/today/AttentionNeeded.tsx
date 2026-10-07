@@ -31,12 +31,12 @@ function Row({ item, now }: { item: AttentionItem; now: Date }) {
         </div>
       ) : (
         <div className="td-att__actions">
-          <button className="td-pill td-pill--solid" onClick={() => api.doNow(task.id)}>{a.do}</button>
+          <button className="td-pill td-pill--solid" onClick={() => api.scheduleToday(task.id)}>{a.do}</button>
           <RescheduleMenu now={now} className="td-pill" label={a.reschedule} onPick={(d) => api.reschedule(task.id, d)} align="left">
             {a.reschedule}
           </RescheduleMenu>
           {item.kind === 'stale_backlog' ? (
-            <button className="td-pill" onClick={() => api.keep(task.id)}>{a.keep}</button>
+            <button className="td-pill" onClick={() => api.review(task.id)}>{a.keep}</button>
           ) : (
             <button className="td-pill" onClick={() => api.moveToBacklog(task.id)}>{a.backlog}</button>
           )}

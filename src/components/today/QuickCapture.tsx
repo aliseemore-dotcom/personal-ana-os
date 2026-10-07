@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { Plus, Inbox } from 'lucide-react';
-import type { Repository } from '../../data';
+import { useTasks } from '../../state/TasksProvider';
 import { t } from '../../strings';
 import { Modal } from '../ui';
 
-export function QuickCapture({ repo, notify }: { repo: Repository; notify: (m: string) => void }) {
+export function QuickCapture() {
+  const api = useTasks();
   const [open, setOpen] = useState(false);
   const [text, setText] = useState('');
   const input = useRef<HTMLInputElement>(null);
@@ -29,12 +30,11 @@ export function QuickCapture({ repo, notify }: { repo: Repository; notify: (m: s
   const submit = () => {
     const content = text.trim();
     if (!content) return;
-    // Optimistic: close at once; tell the user only if saving fails.
-    const item = { id: crypto.randomUUID(), content, created_at: new Date().toISOString(), status: 'inbox' as const };
+    // Optimistic: close at once; the shared store rolls back and tells the user only if saving fails.
     setText('');
     setOpen(false);
-    notify(t.capture.saved);
-    repo.createInboxItem(item).catch(() => notify(t.errors.save));
+    api.notify(t.capture.saved);
+    api.capture(content);
   };
 
   return (

@@ -1,21 +1,26 @@
 import type { Task } from '../domain/types';
 import { calendarDaysBetween, workingDaysBetween } from '../domain/dates';
+import { DEFAULT_THRESHOLDS, type Thresholds } from './thresholds';
+
+export { DEFAULT_THRESHOLDS };
+export type AttentionThresholds = Thresholds;
 
 export type AttentionKind = 'overdue' | 'waiting' | 'lost_attention' | 'stale_backlog';
 /** What the UI shows: lost attention + stale backlog are both "forgotten". */
 export type AttentionGroup = 'overdue' | 'waiting' | 'forgotten';
 
-export interface AttentionThresholds {
-  waitingWorkingDays: number;
-  lostAttentionDays: number;
-  staleBacklogDays: number;
+/** The later of last activity and last review: "Keep" and "Follow up" restart the clock. */
+export function idleSince(task: Task): Date {
+  const a = new Date(task.last_activity_at).getTime();
+  const r = task.last_reviewed_at ? new Date(task.last_reviewed_at).getTime() : 0;
+  return new Date(Math.max(a, r));
 }
 
-export const DEFAULT_THRESHOLDS: AttentionThresholds = {
-  waitingWorkingDays: 5,
-  lostAttentionDays: 5,
-  staleBacklogDays: 30,
-};
+function backlogSince(task: Task): Date {
+  const base = new Date(task.backlog_since ?? task.last_activity_at).getTime();
+  const r = task.last_reviewed_at ? new Date(task.last_reviewed_at).getTime() : 0;
+  return new Date(Math.max(base, r));
+}
 
 export interface AttentionItem {
   task: Task;
@@ -32,9 +37,9 @@ const groupOf = (k: AttentionKind): AttentionGroup =>
  * A task is reported once, under the most urgent rule it matches:
  * overdue > waiting too long > lost attention > stale backlog.
  */
-export function classify(task: Task, now: Date, t: AttentionThresholds = DEFAULT_THRESHOLDS): AttentionItem | null {
+export function classify(task: Task, now: Date, t: Thresholds = DEFAULT_THRESHOLDS): AttentionItem | null {
   if (task.status === 'done') return null;
-  const last = new Date(task.last_activity_at);
+  const last = idleSince(task);
   const make = (kind: AttentionKind, days: number): AttentionItem => ({ task, kind, group: groupOf(kind), days });
 
   if (task.deadline) {
@@ -52,7 +57,7 @@ export function classify(task: Task, now: Date, t: AttentionThresholds = DEFAULT
     if (d >= t.lostAttentionDays) return make('lost_attention', d);
   }
   if (task.status === 'backlog') {
-    const d = calendarDaysBetween(last, now);
+    const d = calendarDaysBetween(backlogSince(task), now);
     if (d > t.staleBacklogDays) return make('stale_backlog', d);
   }
   return null;
@@ -64,7 +69,7 @@ export interface AttentionSummary {
   total: number;
 }
 
-export function detectAttention(tasks: Task[], now: Date, t: AttentionThresholds = DEFAULT_THRESHOLDS): AttentionSummary {
+export function detectAttention(tasks: Task[], now: Date, t: Thresholds = DEFAULT_THRESHOLDS): AttentionSummary {
   const items = tasks
     .map((task) => classify(task, now, t))
     .filter((x): x is AttentionItem => x !== null)

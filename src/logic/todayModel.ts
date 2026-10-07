@@ -12,7 +12,8 @@ export interface TodayModel {
   focusIsManual: boolean;
   priority: Scored[];
   quick: Scored[];
-  /** Planned for today but not shown, to keep the page short. */
+  /** Planned for today but folded away to keep the page short (one click to reveal). */
+  hidden: Scored[];
   hiddenCount: number;
   doneToday: number;
   /** Everything that could be today's focus, best first. */
@@ -59,7 +60,8 @@ export function buildToday(tasks: Task[], now: Date, linger: Linger = NO_LINGER)
   const priorityAll = rest.filter((s) => !isQuick(s));
   const priority = priorityAll.slice(0, MAX_PRIORITY_TASKS);
   const quick = quickAll.slice(0, MAX_QUICK_TASKS);
-  const shownOpen = [focus, ...priority, ...quick].filter((s) => s && s.task.status !== 'done').length;
+  const shown = new Set([focus, ...priority, ...quick]);
+  const hidden = ranked.filter((s) => s.task.status !== 'done' && !shown.has(s));
 
   const doneToday = tasks.filter(
     (t) => t.status === 'done' && t.completed_at && dateKey(new Date(t.completed_at)) === today,
@@ -70,7 +72,8 @@ export function buildToday(tasks: Task[], now: Date, linger: Linger = NO_LINGER)
     focusIsManual: manual !== null,
     priority,
     quick,
-    hiddenCount: Math.max(0, ranked.filter((s) => s.task.status !== 'done').length - shownOpen),
+    hidden,
+    hiddenCount: hidden.length,
     doneToday,
     candidates: ranked.filter((s) => s.task.status !== 'done'),
   };

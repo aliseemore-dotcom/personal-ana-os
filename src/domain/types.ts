@@ -25,6 +25,17 @@ export interface Task {
   blocks_note: string | null;
   is_focus: boolean;
   source: string;
+  notes: string | null;
+  /** Related person (people table). */
+  assigned_person_id: string | null;
+  /** Name of who the task was handed to. */
+  delegated_to: string | null;
+  waiting_since: string | null;
+  backlog_since: string | null;
+  /** How many times the planned date was pushed later. */
+  reschedule_count: number;
+  /** Last time a decision was made on this task (Keep, Follow up). */
+  last_reviewed_at: string | null;
 }
 
 export type TaskPatch = Partial<Omit<Task, 'id' | 'created_at'>>;
@@ -40,7 +51,37 @@ export interface InboxItem {
   id: string;
   content: string;
   created_at: string;
-  status: 'inbox';
+  status: 'inbox' | 'processed';
+  /** Set once the capture has been turned into a task. */
+  task_id?: string | null;
+}
+
+export interface Person {
+  id: string;
+  name: string;
+}
+
+export type TaskEventType =
+  | 'created'
+  | 'status_changed'
+  | 'deadline_changed'
+  | 'scheduled'
+  | 'rescheduled'
+  | 'moved_to_today'
+  | 'completed'
+  | 'reopened'
+  | 'delegated'
+  | 'priority_changed'
+  | 'reviewed';
+
+/** Append-only activity record; kept apart from the Task so patterns (e.g. repeated postponement) can be mined later. */
+export interface TaskEvent {
+  id: string;
+  task_id: string;
+  type: TaskEventType;
+  at: string;
+  from: string | null;
+  to: string | null;
 }
 
 export interface DailyAnswer {

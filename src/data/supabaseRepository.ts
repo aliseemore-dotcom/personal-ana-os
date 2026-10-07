@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { DailyAnswer, InboxItem, Project, Task, TaskPatch } from '../domain/types';
+import type { DailyAnswer, InboxItem, Person, Project, Task, TaskEvent, TaskPatch } from '../domain/types';
+import { normaliseTask } from '../logic/taskFactory';
 import type { Repository } from './repository';
 
 const fail = (error: { message: string } | null) => {
@@ -11,9 +12,52 @@ export function createSupabaseRepository(db: SupabaseClient): Repository {
     kind: 'supabase',
 
     async listTasks() {
-      const { data, error } = await db.from('tasks').select('*').neq('status', 'inbox');
+      const { data, error } = await db.from('tasks').select('*');
       fail(error);
-      return (data ?? []) as Task[];
+      return (data ?? []).map((r) => normaliseTask(r as Task));
+    },
+
+    async createTask(task) {
+      const { error } = await db.from('tasks').insert(task);
+      fail(error);
+    },
+
+    async listPeople() {
+      const { data, error } = await db.from('people').select('id,name');
+      fail(error);
+      return (data ?? []) as Person[];
+    },
+
+    async createPerson(person) {
+      const { error } = await db.from('people').insert(person);
+      fail(error);
+    },
+
+    async addTaskEvents(events: TaskEvent[]) {
+      const { error } = await db.from('task_events').insert(events);
+      fail(error);
+    },
+
+    async listTaskEvents(taskId) {
+      const { data, error } = await db.from('task_events').select('id,task_id,type,at,from,to').eq('task_id', taskId).order('at', { ascending: false });
+      fail(error);
+      return (data ?? []) as TaskEvent[];
+    },
+
+    async listInbox() {
+      const { data, error } = await db.from('inbox_items').select('id,content,created_at,status,task_id').eq('status', 'inbox').order('created_at', { ascending: false });
+      fail(error);
+      return (data ?? []) as InboxItem[];
+    },
+
+    async updateInboxItem(id, patch) {
+      const { error } = await db.from('inbox_items').update(patch).eq('id', id);
+      fail(error);
+    },
+
+    async deleteInboxItem(id) {
+      const { error } = await db.from('inbox_items').delete().eq('id', id);
+      fail(error);
     },
 
     async listProjects() {

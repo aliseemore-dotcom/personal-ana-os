@@ -14,7 +14,9 @@ import { FocusCard } from './FocusCard';
 import { FocusPicker } from './FocusPicker';
 import { Header } from './Header';
 import { QuickCapture } from './QuickCapture';
-import { TaskDialog } from './TaskDialog';
+import { AppNav } from '../AppNav';
+import { TaskDetail } from '../tasks/TaskDetail';
+import type { Route } from '../../state/useRoute';
 import { TodayTasks } from './TodayTasks';
 import { UpcomingEvents } from './UpcomingEvents';
 
@@ -22,7 +24,7 @@ import { UpcomingEvents } from './UpcomingEvents';
  * Composition only. Every number and list on the page comes from the pure
  * functions in /logic, fed by the task store, the calendar service and the clock.
  */
-export function TodayPage({ repo, onSignOut }: { repo: Repository; onSignOut?: () => void }) {
+export function TodayPage({ repo, route, onNavigate, onSignOut }: { repo: Repository; route: Route; onNavigate: (r: Route) => void; onSignOut?: () => void }) {
   const now = useNow();
   const api = useTasks();
   const weather = useWeather();
@@ -40,6 +42,7 @@ export function TodayPage({ repo, onSignOut }: { repo: Repository; onSignOut?: (
       <div className="rg-orb td-orb td-orb--b" aria-hidden />
 
       <main className="td-page">
+        <AppNav route={route} onNavigate={onNavigate} />
         <Header now={now} weather={weather} onSignOut={onSignOut} />
 
         {api.status === 'loading' && <p className="td-empty">{t.loading}</p>}
@@ -67,9 +70,9 @@ export function TodayPage({ repo, onSignOut }: { repo: Repository; onSignOut?: (
         {repo.kind === 'local' && <p className="rg-small td-demo">{t.demo}</p>}
       </main>
 
-      <QuickCapture repo={repo} notify={api.notify} />
+      <QuickCapture />
       {picking && <FocusPicker candidates={model.candidates} currentId={model.focus?.task.id} onClose={() => setPicking(false)} />}
-      {openTask && <TaskDialog key={openTask.id} task={openTask} onClose={() => setOpenId(null)} />}
+      {openTask && <TaskDetail key={openTask.id} task={openTask} now={now} onClose={() => setOpenId(null)} />}
       <Toast message={api.toast} />
     </div>
   );

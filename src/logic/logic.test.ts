@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Task } from '../domain/types';
+import { newTask } from './taskFactory';
 import { workingDaysBetween } from '../domain/dates';
 import { classify, detectAttention } from './attention';
 import { scoreTask } from './prioritisation';
@@ -11,27 +12,22 @@ const now = new Date(2026, 9, 7, 14, 0, 0);
 const ago = (days: number) => new Date(2026, 9, 7 - days, 9, 0, 0).toISOString();
 
 let n = 0;
-const task = (over: Partial<Task> = {}): Task => ({
-  id: `t${++n}`,
-  title: `Task ${n}`,
-  description: null,
-  status: 'planned',
-  priority: 'medium',
-  deadline: null,
-  scheduled_date: '2026-10-07',
-  estimated_duration: 60,
-  project_id: null,
-  created_at: ago(40),
-  updated_at: ago(1),
-  last_activity_at: ago(1),
-  completed_at: null,
-  impact_score: 5,
-  blocks_others: false,
-  blocks_note: null,
-  is_focus: false,
-  source: 'test',
-  ...over,
-});
+const task = (over: Partial<Task> = {}): Task =>
+  newTask(
+    {
+      id: `t${++n}`,
+      title: `Task ${n}`,
+      status: 'planned',
+      scheduled_date: '2026-10-07',
+      estimated_duration: 60,
+      created_at: ago(40),
+      updated_at: ago(1),
+      last_activity_at: ago(1),
+      source: 'test',
+      ...over,
+    },
+    now,
+  );
 
 describe('working days', () => {
   it('skips weekends', () => {
@@ -59,15 +55,15 @@ describe('attention detection', () => {
     expect(classify(task({ status: 'in_progress', last_activity_at: ago(6) }), now)?.kind).toBe('lost_attention');
   });
   it('flags backlog older than 30 days', () => {
-    expect(classify(task({ status: 'backlog', last_activity_at: ago(30) }), now)).toBeNull();
-    expect(classify(task({ status: 'backlog', last_activity_at: ago(31) }), now)?.kind).toBe('stale_backlog');
+    expect(classify(task({ status: 'backlog', backlog_since: ago(30), last_activity_at: ago(30) }), now)).toBeNull();
+    expect(classify(task({ status: 'backlog', backlog_since: ago(31), last_activity_at: ago(31) }), now)?.kind).toBe('stale_backlog');
   });
   it('counts a task once and groups lost+stale as forgotten', () => {
     const s = detectAttention(
       [
         task({ deadline: ago(1), status: 'waiting', last_activity_at: ago(20) }),
         task({ status: 'in_progress', last_activity_at: ago(8) }),
-        task({ status: 'backlog', last_activity_at: ago(45) }),
+        task({ status: 'backlog', backlog_since: ago(45), last_activity_at: ago(45) }),
       ],
       now,
     );
@@ -99,6 +95,7 @@ describe('today model', () => {
     expect(m.priority).toHaveLength(3);
     expect(m.quick.map((q) => q.task.title)).toEqual(['quick']);
     expect(m.hiddenCount).toBe(2);
+    expect(m.hidden).toHaveLength(2);
 
     const chosen = tasks[0];
     const manual = buildToday(tasks.map((t) => (t === chosen ? { ...t, is_focus: true } : t)), now);
