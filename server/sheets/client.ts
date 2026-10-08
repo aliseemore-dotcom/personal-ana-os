@@ -49,44 +49,51 @@ const TOKEN_URL = 'https://oauth2.googleapis.com/token';
 const API = 'https://sheets.googleapis.com/v4/spreadsheets';
 const TIMEOUT_MS = 12_000;
 
-export function createGoogleSheetsClient(cfg: GoogleConfig, fetchImpl: typeof fetch = fetch): SheetsClient {
-  let token: { value: string; expiresAt: number } | null = null;
-  let sheetIds: Map<string, number> | null = null;
-  const scope = cfg.write ? 'https://www.googleapis.com/auth/spreadsheets' : 'https://www.googleapis.com/auth/spreadsheets.readonly';
-
-  async function call(url: string, init: RequestInit = {}): Promise<any> {
-    const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
-    try {
-      const res = await fetchImpl(url, { ...init, signal: ctrl.signal });
-      if (!res.ok) {
-        // Keep the technical detail for server logs only; callers show a calm message.
-        const detail = (await res.text().catch(() => '')).slice(0, 300);
-        throw new UpstreamError(`Google API ${res.status}: ${detail}`, res.status);
-      }
-      return await res.json();
-    } catch (e) {
-      if (e instanceof UpstreamError) throw e;
-      throw new UpstreamError(`Google API request failed: ${(e as Error).name}`);
-    } finally {
-      clearTimeout(timer);
+/** One Google API call with a timeout. Technical detail goes to the server log, never to the browser. */
+export async function googleCall(fetchImpl: typeof fetch, url: string, init: RequestInit = {}): Promise<any> {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
+  try {
+    const res = await fetchImpl(url, { ...init, signal: ctrl.signal });
+    if (!res.ok) {
+      const detail = (await res.text().catch(() => '')).slice(0, 300);
+      throw new UpstreamError(`Google API ${res.status}: ${detail}`, res.status);
     }
+    return await res.json();
+  } catch (e) {
+    if (e instanceof UpstreamError) throw e;
+    throw new UpstreamError(`Google API request failed: ${(e as Error).name}`);
+  } finally {
+    clearTimeout(timer);
   }
+}
 
-  async function accessToken(): Promise<string> {
+/**
+ * Service-account access token for one scope (signed JWT, RS256), cached until shortly before it expires.
+ * The Sheets and Calendar integrations share this, each asking for its own minimal scope.
+ */
+export function createTokenSource(cfg: { serviceAccountEmail: string; privateKey: string }, scope: string, fetchImpl: typeof fetch = fetch): () => Promise<string> {
+  let token: { value: string; expiresAt: number } | null = null;
+  return async () => {
     const now = Math.floor(Date.now() / 1000);
     if (token && token.expiresAt - 60 > now) return token.value;
     const header = b64url(JSON.stringify({ alg: 'RS256', typ: 'JWT' }));
     const claim = b64url(JSON.stringify({ iss: cfg.serviceAccountEmail, scope, aud: TOKEN_URL, iat: now, exp: now + 3600 }));
     const signature = createSign('RSA-SHA256').update(`${header}.${claim}`).sign(cfg.privateKey);
     const body = new URLSearchParams({ grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer', assertion: `${header}.${claim}.${b64url(signature)}` });
-    const res = await call(TOKEN_URL, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body });
+    const res = await googleCall(fetchImpl, TOKEN_URL, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body });
     token = { value: res.access_token as string, expiresAt: now + Number(res.expires_in ?? 3600) };
     return token.value;
-  }
+  };
+}
+
+export function createGoogleSheetsClient(cfg: GoogleConfig, fetchImpl: typeof fetch = fetch): SheetsClient {
+  let sheetIds: Map<string, number> | null = null;
+  const scope = cfg.write ? 'https://www.googleapis.com/auth/spreadsheets' : 'https://www.googleapis.com/auth/spreadsheets.readonly';
+  const accessToken = createTokenSource(cfg, scope, fetchImpl);
 
   const authed = async (url: string, init: RequestInit = {}) =>
-    call(url, { ...init, headers: { ...(init.headers ?? {}), Authorization: `Bearer ${await accessToken()}` } });
+    googleCall(fetchImpl, url, { ...init, headers: { ...(init.headers ?? {}), Authorization: `Bearer ${await accessToken()}` } });
 
   const id = encodeURIComponent(cfg.sheetId);
   const quote = (sheet: string) => `'${sheet.replace(/'/g, "''")}'`;

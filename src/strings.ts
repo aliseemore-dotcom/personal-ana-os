@@ -70,6 +70,7 @@ export const t = {
     now: 'Now',
     empty: (hours: number) => `Nothing in the next ${hours} hours.`,
     error: 'Calendar is unavailable right now.',
+    notConnected: 'Google Calendar is not connected yet.',
     inMinutes: (m: number) => (m < 60 ? `in ${m} min` : `in ${Math.floor(m / 60)} h${m % 60 ? ` ${m % 60} min` : ''}`),
   },
 

@@ -52,6 +52,28 @@ Tolerated formats: ISO dates, `07/10/2026` (day first), `15 Oct 2026`, Sheets da
 
 Nothing secret is in the repository. `.env*` files are git-ignored, and none of the Google variables start with `VITE_`.
 
+## Google Calendar ("Coming up")
+
+Events are read **on the server** with the same service account, with the read-only calendar scope, through
+`/api/calendar`. The browser never holds a Google token and never calls Google.
+
+1. In the same Google Cloud project, enable the **Google Calendar API**.
+2. In Google Calendar (web): *Settings → your calendar → Share with specific people* and add the service account's email
+   with **See all event details**. ("See only free/busy" also works, but every event then shows as *Busy*.)
+3. In Vercel add `GOOGLE_CALENDAR_ID` = the calendar's id (*Settings → Integrate calendar → Calendar ID*, usually your email address),
+   and redeploy. Do not use `primary`: for a service account that means its own, empty calendar.
+4. Leave `VITE_CALENDAR_PROVIDER` unset. With `VITE_DATA_SOURCE=sheets` the calendar comes from Google; demo events appear only when
+   you set it to `mock` or run on local demo data.
+
+The page shows events that are in progress or start within four hours, and moves the window with the clock without refetching.
+Google is asked at most once a minute. Cancelled events, events you declined and working-location entries are left out.
+
+If the calendar is not set up or not shared yet, "Coming up" says *Google Calendar is not connected yet.* If Google is temporarily
+unreachable it says *Calendar is unavailable right now* (or keeps showing the events it already has). The technical reason is in the server log.
+
+If your Google Workspace administrator does not allow sharing calendars with outside accounts, step 2 will not work; the
+alternatives are domain-wide delegation for the service account or an OAuth sign-in, both of which need the administrator.
+
 ## Freshness
 
 The server reads all sheets in one request and keeps the result for 30 seconds (`SHEETS_CACHE_SECONDS`).

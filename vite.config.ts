@@ -11,6 +11,10 @@ function mockDataHub(): Plugin {
     const { createSheetsHub } = await import('./server/hub.ts');
     const { buildFixtureWorkbook, createFakeSheets } = await import('./server/sheets/fixture.ts');
     const env = { DASHBOARD_ACCESS_KEY: process.env.DASHBOARD_ACCESS_KEY || 'dev-key' };
+    const { handleCalendar } = await import('./server/http.ts');
+    const { withCache } = await import('./server/calendar.ts');
+    const { createMockCalendarProvider } = await import('./src/services/calendar/mockProvider.ts');
+    const calendar = withCache(createMockCalendarProvider());
     const hub = createSheetsHub(createFakeSheets(buildFixtureWorkbook(new Date())), { writable: true, ttlMs: 30_000, minForceIntervalMs: 2_000 });
     middlewares.use(async (req, res, next) => {
       if (!req.url?.startsWith('/api/')) return next();
@@ -21,7 +25,11 @@ function mockDataHub(): Plugin {
         headers: req.headers as Record<string, string>,
         body: req.method === 'GET' || req.method === 'HEAD' ? undefined : Buffer.concat(chunks),
       });
-      const response = req.url.startsWith('/api/write') ? await handleWrite(request, env, hub) : await handleData(request, env, hub);
+      const response = req.url.startsWith('/api/write')
+        ? await handleWrite(request, env, hub)
+        : req.url.startsWith('/api/calendar')
+          ? await handleCalendar(request, env, calendar)
+          : await handleData(request, env, hub);
       res.statusCode = response.status;
       response.headers.forEach((v, k) => res.setHeader(k, v));
       res.end(await response.text());

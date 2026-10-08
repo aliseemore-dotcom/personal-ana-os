@@ -1,16 +1,17 @@
 import { config } from '../../config';
 import type { CalendarEvent } from '../../domain/types';
+import type { CalendarProblem } from '../../state/useUpcomingEvents';
 import { t } from '../../strings';
 
 const hhmm = (iso: string) =>
   new Date(iso).toLocaleTimeString(config.locale, { hour: '2-digit', minute: '2-digit', hour12: false });
 
-export function UpcomingEvents({ events, now, error }: { events: CalendarEvent[]; now: Date; error: boolean }) {
+export function UpcomingEvents({ events, now, error }: { events: CalendarEvent[]; now: Date; error: CalendarProblem }) {
   return (
     <section className="rg-glass td-coming" aria-labelledby="coming-title">
       <h2 className="rg-h2" id="coming-title">{t.comingUp.title}</h2>
       {error && events.length === 0 ? (
-        <p className="td-empty">{t.comingUp.error}</p>
+        <p className="td-empty">{error === 'not_connected' ? t.comingUp.notConnected : t.comingUp.error}</p>
       ) : events.length === 0 ? (
         <p className="td-empty">{t.comingUp.empty(config.comingUpHours)}</p>
       ) : (

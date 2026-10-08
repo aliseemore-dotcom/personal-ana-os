@@ -1,7 +1,8 @@
 import { createHash, timingSafeEqual } from 'node:crypto';
 import type { ProjectDecision, ProjectNote, Task, Workstream } from '../src/domain/types.js';
+import { calendarFromEnv, type CalendarResult } from './calendar.js';
 import { createSheetsHub, HubError, type DataHub } from './hub.js';
-import { ConfigError, createGoogleSheetsClient, googleConfigFromEnv } from './sheets/client.js';
+import { ConfigError, createGoogleSheetsClient, googleConfigFromEnv, UpstreamError } from './sheets/client.js';
 
 type Env = Record<string, string | undefined>;
 
@@ -65,6 +66,39 @@ export async function handleData(req: Request, env: Env = process.env, hub?: Dat
     return reply(200, { data: snapshot, syncedAt, stale, writable: h.writable });
   } catch (e) {
     return failure(e);
+  }
+}
+
+/**
+ * GET /api/calendar?from=ISO&to=ISO — events in a window (at most a week, not far in the future).
+ * "Not connected" (not configured, or the calendar is not shared with the service account) is
+ * reported separately from "unavailable", so the page can say the right calm thing.
+ */
+export async function handleCalendar(req: Request, env: Env = process.env, calendar?: { get(from: Date, to: Date): Promise<CalendarResult> }): Promise<Response> {
+  const denied = authorise(req, env);
+  if (denied) return denied;
+  const q = new URL(req.url).searchParams;
+  const from = new Date(q.get('from') ?? '');
+  const to = new Date(q.get('to') ?? '');
+  const day = 86_400_000;
+  if (Number.isNaN(from.getTime()) || Number.isNaN(to.getTime()) || to <= from || to.getTime() - from.getTime() > 7 * day || to.getTime() > Date.now() + 60 * day) {
+    return reply(400, { error: 'invalid', message: 'from and to must be dates, at most seven days apart' });
+  }
+  try {
+    const result = await (calendar ?? calendarFromEnv(env)).get(from, to);
+    return reply(200, result);
+  } catch (e) {
+    if (e instanceof ConfigError) {
+      console.error('[calendar] configuration', e.message);
+      return reply(503, { error: 'calendar_not_connected' });
+    }
+    if (e instanceof UpstreamError && (e.status === 403 || e.status === 404)) {
+      // Usually: the calendar has not been shared with the service account, or the id is wrong.
+      console.error('[calendar] not shared or not found', e.message);
+      return reply(503, { error: 'calendar_not_connected' });
+    }
+    console.error('[calendar] upstream error', (e as Error)?.message);
+    return reply(502, { error: 'upstream' });
   }
 }
 

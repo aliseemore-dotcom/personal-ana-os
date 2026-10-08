@@ -27,7 +27,7 @@ Set `VITE_DATA_SOURCE=sheets` on Vercel. Without it the app shows demo data held
 | Today sections | `src/logic/todayModel.ts` | 1 focus, max 3 priority, quick tasks (≤15 min); manual focus overrides suggestion |
 | Action meaning | `src/logic/taskActions.ts` | Complete / reschedule / backlog / do as pure patches |
 | Data | `src/data/*` | `Repository` interface; Supabase and local-demo implementations |
-| Calendar | `src/services/calendar/*` | `CalendarProvider` interface; mock + Google provider; `CalendarService` slides the 4-hour window with the clock |
+| Calendar | `src/services/calendar/*`, `server/calendar.ts` | `CalendarProvider` interface; demo provider and an API provider that reads Google on the server; `CalendarService` slides the 4-hour window with the clock |
 | State | `src/state/*` | Optimistic updates with rollback; clock tick every minute |
 | Copy | `src/strings.ts` | All text in one place |
 
@@ -62,7 +62,7 @@ Routes: `#projects` (card grid), `#projects/<project>` (Project HQ), `#projects/
 - **Quick capture** writes to `inbox_items` (id, content, created_at, status=`inbox`). Press `C` to open it.
 - **Daily question** is chosen by day-of-year; answers are stored with date + question (`daily_answers`; `listDailyAnswers` exists, no history UI yet).
 - **Reschedule** also moves a deadline that would still be in the past, otherwise the task would stay "overdue".
-- **Google Calendar** provider is written but untested against a live account; set `VITE_CALENDAR_PROVIDER=google` and supply a token source in `src/services/calendar/index.ts`.
+- **Google Calendar** is read on the server (`/api/calendar`, same service account, read-only scope). Setup is in [docs/DATA_HUB.md](docs/DATA_HUB.md). Demo events appear only on local demo data.
 - **Inbox:** raw captures from the "+" button and tasks with status Inbox share the Inbox column. Moving a capture anywhere turns it into a task.
 - **Rescheduling:** only moving a planned date later counts as a reschedule (3 or more flags repeated postponement).
 - **"Keep" / "Keep waiting"** record a review, which restarts the idle clocks for that task.

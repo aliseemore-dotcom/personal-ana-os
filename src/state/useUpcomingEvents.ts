@@ -1,19 +1,21 @@
 import { useEffect, useMemo, useState } from 'react';
 import { config } from '../config';
 import type { CalendarEvent } from '../domain/types';
-import { calendarService } from '../services/calendar';
+import { calendarService, CalendarUnavailable } from '../services/calendar';
 
-export function useUpcomingEvents(now: Date): { events: CalendarEvent[]; error: boolean } {
+export type CalendarProblem = 'not_connected' | 'unavailable' | null;
+
+export function useUpcomingEvents(now: Date): { events: CalendarEvent[]; error: CalendarProblem } {
   const [version, setVersion] = useState(0);
-  const [error, setError] = useState(false);
+  const [error, setError] = useState<CalendarProblem>(null);
 
   useEffect(() => {
     let alive = true;
     const load = () =>
       calendarService
         .refresh()
-        .then(() => alive && setError(false))
-        .catch(() => alive && setError(true));
+        .then(() => alive && setError(null))
+        .catch((e) => alive && setError(e instanceof CalendarUnavailable ? e.kind : 'unavailable'));
     const off = calendarService.subscribe(() => setVersion((v) => v + 1));
     load();
     const id = window.setInterval(load, 5 * 60_000);
