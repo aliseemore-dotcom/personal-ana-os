@@ -22,7 +22,7 @@ describe('calendar api provider', () => {
     expect(calls[0].auth).toBe('Bearer k');
   });
   it('tells "not connected" from "unavailable", and asks for the key again on 401', async () => {
-    await expect(run(503).p.listEvents(from, to)).rejects.toMatchObject({ kind: 'not_connected' });
+    await expect(run(503, { error: 'calendar_not_configured' }).p.listEvents(from, to)).rejects.toMatchObject({ kind: 'not_configured' });
     await expect(run(502).p.listEvents(from, to)).rejects.toMatchObject({ kind: 'unavailable' });
     const r = run(401);
     await expect(r.p.listEvents(from, to)).rejects.toBeInstanceOf(CalendarUnavailable);

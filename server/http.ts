@@ -1,8 +1,8 @@
 import { createHash, timingSafeEqual } from 'node:crypto';
 import type { ProjectDecision, ProjectNote, Task, Workstream } from '../src/domain/types.js';
-import { calendarFromEnv, type CalendarResult } from './calendar.js';
+import { calendarFromEnv, classifyCalendarError, diagnoseCalendar, type CalendarResult } from './calendar.js';
 import { createSheetsHub, HubError, type DataHub } from './hub.js';
-import { ConfigError, createGoogleSheetsClient, googleConfigFromEnv, UpstreamError } from './sheets/client.js';
+import { ConfigError, createGoogleSheetsClient, googleConfigFromEnv } from './sheets/client.js';
 
 type Env = Record<string, string | undefined>;
 
@@ -78,6 +78,7 @@ export async function handleCalendar(req: Request, env: Env = process.env, calen
   const denied = authorise(req, env);
   if (denied) return denied;
   const q = new URL(req.url).searchParams;
+  if (q.get('diagnose') === '1') return reply(200, await diagnoseCalendar(env));
   const from = new Date(q.get('from') ?? '');
   const to = new Date(q.get('to') ?? '');
   const day = 86_400_000;
@@ -88,17 +89,10 @@ export async function handleCalendar(req: Request, env: Env = process.env, calen
     const result = await (calendar ?? calendarFromEnv(env)).get(from, to);
     return reply(200, result);
   } catch (e) {
-    if (e instanceof ConfigError) {
-      console.error('[calendar] configuration', e.message);
-      return reply(503, { error: 'calendar_not_connected' });
-    }
-    if (e instanceof UpstreamError && (e.status === 403 || e.status === 404)) {
-      // Usually: the calendar has not been shared with the service account, or the id is wrong.
-      console.error('[calendar] not shared or not found', e.message);
-      return reply(503, { error: 'calendar_not_connected' });
-    }
-    console.error('[calendar] upstream error', (e as Error)?.message);
-    return reply(502, { error: 'upstream' });
+    // Technical detail stays in the server log; the browser gets a named, actionable cause.
+    const fault = classifyCalendarError(e);
+    console.error(`[calendar] ${fault}`, (e as Error)?.message);
+    return fault === 'upstream' ? reply(502, { error: 'upstream' }) : reply(503, { error: fault });
   }
 }
 

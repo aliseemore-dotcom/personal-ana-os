@@ -1,9 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
-import { config } from '../config';
 import type { CalendarEvent } from '../domain/types';
 import { calendarService, CalendarUnavailable } from '../services/calendar';
 
-export type CalendarProblem = 'not_connected' | 'unavailable' | null;
+export type CalendarProblem = import('../services/calendar').CalendarProblemKind | null;
 
 export function useUpcomingEvents(now: Date): { events: CalendarEvent[]; error: CalendarProblem } {
   const [version, setVersion] = useState(0);
@@ -18,7 +17,7 @@ export function useUpcomingEvents(now: Date): { events: CalendarEvent[]; error: 
         .catch((e) => alive && setError(e instanceof CalendarUnavailable ? e.kind : 'unavailable'));
     const off = calendarService.subscribe(() => setVersion((v) => v + 1));
     load();
-    const id = window.setInterval(load, 5 * 60_000);
+    const id = window.setInterval(load, 60_000);
     const onVisible = () => document.visibilityState === 'visible' && load();
     document.addEventListener('visibilitychange', onVisible);
     return () => {
@@ -31,6 +30,6 @@ export function useUpcomingEvents(now: Date): { events: CalendarEvent[]; error: 
 
   // `now` ticks every minute, so the window slides without refetching.
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const events = useMemo(() => calendarService.upcoming(now, config.comingUpHours), [now, version]);
+  const events = useMemo(() => calendarService.upcomingToday(now), [now, version]);
   return { events, error };
 }

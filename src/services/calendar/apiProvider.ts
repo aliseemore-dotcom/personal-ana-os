@@ -1,9 +1,18 @@
 import type { CalendarEvent } from '../../domain/types';
 import type { CalendarProvider } from './types';
 
+/** What to tell the person: a setting to fix, a permission to grant, or just a temporary problem. */
+export type CalendarProblemKind = 'not_configured' | 'auth_failed' | 'api_disabled' | 'not_shared' | 'unavailable';
+
+const BY_ERROR: Record<string, CalendarProblemKind> = {
+  calendar_not_configured: 'not_configured',
+  calendar_auth_failed: 'auth_failed',
+  calendar_api_disabled: 'api_disabled',
+  calendar_not_shared: 'not_shared',
+};
+
 export class CalendarUnavailable extends Error {
-  /** `not_connected`: not set up or not shared yet. `unavailable`: a temporary problem. */
-  constructor(public kind: 'not_connected' | 'unavailable') {
+  constructor(public kind: CalendarProblemKind) {
     super(kind);
   }
 }
@@ -31,8 +40,10 @@ export function createApiCalendarProvider(opts: { getKey: () => string | null; o
         opts.onUnauthorised();
         throw new CalendarUnavailable('unavailable');
       }
-      if (res.status === 503) throw new CalendarUnavailable('not_connected');
-      if (!res.ok) throw new CalendarUnavailable('unavailable');
+      if (!res.ok) {
+        const code = ((await res.json().catch(() => ({}))) as { error?: string }).error ?? '';
+        throw new CalendarUnavailable(BY_ERROR[code] ?? 'unavailable');
+      }
       return ((await res.json()) as { events: CalendarEvent[] }).events;
     },
   };

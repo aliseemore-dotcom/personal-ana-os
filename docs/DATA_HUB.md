@@ -65,11 +65,28 @@ Events are read **on the server** with the same service account, with the read-o
 4. Leave `VITE_CALENDAR_PROVIDER` unset. With `VITE_DATA_SOURCE=sheets` the calendar comes from Google; demo events appear only when
    you set it to `mock` or run on local demo data.
 
-The page shows events that are in progress or start within four hours, and moves the window with the clock without refetching.
-Google is asked at most once a minute. Cancelled events, events you declined and working-location entries are left out.
+**What the page shows.** Today's meetings that have not finished yet, soonest first, in **Europe/London** time whatever timezone the
+browser is in (including the days the clocks change). Each shows its title, start, end ("until 15:45") and the location when there is one.
+All-day entries, cancelled events, events you declined and working-location entries are left out. The list is refreshed every 60 seconds
+and moves with the clock: a meeting that finishes leaves the list without a new request. Google itself is asked at most every 30 seconds.
+There is no calendar database; events are read live and held only in memory.
 
-If the calendar is not set up or not shared yet, "Coming up" says *Google Calendar is not connected yet.* If Google is temporarily
-unreachable it says *Calendar is unavailable right now* (or keeps showing the events it already has). The technical reason is in the server log.
+**Checking it for real.** Nothing replaces trying it with your own credentials:
+
+- `npm run calendar:check` (with the variables in `.env.local`, e.g. from `vercel env pull`) walks *configuration → access token → read
+  calendar* and prints today's meetings from your calendar. A ✗ names the step and the fix.
+- On the deployed site, `GET /api/calendar?diagnose=1` with `Authorization: Bearer <your access key>` returns the same step-by-step result
+  (no secrets and no meeting titles).
+
+**What the page says when something is wrong** (the technical reason is only in the server log):
+
+| Situation | Message on the page |
+|---|---|
+| `GOOGLE_CALENDAR_ID` or the service account variables missing | Google Calendar is not connected yet. |
+| Calendar not shared with the service account, or wrong calendar id | Google Calendar is not shared with the dashboard yet. |
+| Calendar API not enabled in the Cloud project | The Google Calendar API is not switched on yet. |
+| Google refuses the service account key | Google refused the dashboard's access. Check the service account key. |
+| Google temporarily unavailable | Calendar is unavailable right now. (events already loaded stay on screen) |
 
 If your Google Workspace administrator does not allow sharing calendars with outside accounts, step 2 will not work; the
 alternatives are domain-wide delegation for the service account or an OAuth sign-in, both of which need the administrator.

@@ -6,7 +6,7 @@ import { createMockCalendarProvider } from './mockProvider';
 import type { CalendarProvider } from './types';
 
 export { CalendarService } from './calendarService';
-export { CalendarUnavailable } from './apiProvider';
+export { CalendarUnavailable, type CalendarProblemKind } from './apiProvider';
 export type { CalendarProvider } from './types';
 
 /**

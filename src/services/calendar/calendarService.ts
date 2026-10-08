@@ -1,4 +1,5 @@
 import type { CalendarEvent } from '../../domain/types';
+import { londonDayRange } from '../../domain/london';
 import type { CalendarProvider } from './types';
 
 /**
@@ -25,19 +26,24 @@ export class CalendarService {
     return () => void this.listeners.delete(fn);
   }
 
-  /** Pull from the provider: from the start of today to the end of tomorrow. */
+  /**
+   * Pull today's events (London's day, a stable window so the server can cache it).
+   * Called every minute; it also crosses midnight correctly because the day is worked out each time.
+   */
   async refresh(now: Date = new Date()): Promise<void> {
-    const from = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const to = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 2);
+    const { from, to } = londonDayRange(now);
     this.cache = await this.provider.listEvents(from, to);
     this.listeners.forEach((l) => l());
   }
 
-  /** Events that are in progress or start within `hours`, soonest first. All-day events are skipped. */
-  upcoming(now: Date, hours: number): CalendarEvent[] {
-    const horizon = now.getTime() + hours * 3_600_000;
+  /**
+   * Today's meetings that have not finished yet, soonest first. All-day entries are not meetings and are left out.
+   * Evaluated against the clock on every call, so finished meetings drop away without any new request.
+   */
+  upcomingToday(now: Date): CalendarEvent[] {
+    const { to } = londonDayRange(now);
     return this.cache
-      .filter((e) => !e.allDay && new Date(e.end).getTime() > now.getTime() && new Date(e.start).getTime() <= horizon)
-      .sort((a, b) => a.start.localeCompare(b.start));
+      .filter((e) => !e.allDay && new Date(e.end).getTime() > now.getTime() && new Date(e.start).getTime() < to.getTime())
+      .sort((a, b) => a.start.localeCompare(b.start) || a.end.localeCompare(b.end));
   }
 }

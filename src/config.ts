@@ -11,7 +11,6 @@ export const config = {
   },
   calendarProvider: 'mock' as 'mock' | 'api',
   /** How far ahead "Coming up" looks. */
-  comingUpHours: 4,
   dataSource: 'local' as DataSource,
 };
 

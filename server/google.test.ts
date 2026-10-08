@@ -1,6 +1,6 @@
 import { createPublicKey, createVerify, generateKeyPairSync } from 'node:crypto';
 import { describe, expect, it } from 'vitest';
-import { calendarFromEnv, createGoogleCalendarSource, mapGoogleEvent, withCache } from './calendar.js';
+import { calendarFromEnv, classifyCalendarError, createGoogleCalendarSource, diagnoseCalendar, mapGoogleEvent, withCache } from './calendar.js';
 import { handleCalendar } from './http.js';
 import { createGoogleSheetsClient, createTokenSource, googleConfigFromEnv, ConfigError } from './sheets/client.js';
 
@@ -128,16 +128,88 @@ describe('/api/calendar', () => {
     expect((await handleCalendar(req('from=x&to=y'), env, ok)).status).toBe(400);
     expect((await handleCalendar(req(`from=${encodeURIComponent(new Date().toISOString())}&to=${encodeURIComponent(new Date(Date.now() + 30 * 86_400_000).toISOString())}`), env, ok)).status).toBe(400);
   });
-  it('says "not connected" when the calendar id is missing or the calendar is not shared, and "unavailable" otherwise', async () => {
+  it('names the cause when the calendar is not set up or not shared, and says "upstream" otherwise', async () => {
     expect((await handleCalendar(req(window()), env, { get: async () => { throw new (await import('./sheets/client.js')).ConfigError(['GOOGLE_CALENDAR_ID']); } })).status).toBe(503);
-    const notShared = { get: async () => { throw new (await import('./sheets/client.js')).UpstreamError('Google API 404: Not Found', 404); } };
+    const notShared = { get: async () => { throw new (await import('./sheets/client.js')).UpstreamError('Google API 404: Not Found', 404, 'notFound', 'api'); } };
     const res = await handleCalendar(req(window()), env, notShared);
     expect(res.status).toBe(503);
-    expect(await res.text()).toBe('{"error":"calendar_not_connected"}');
+    expect(await res.text()).toBe('{"error":"calendar_not_shared"}');
     const down = { get: async () => { throw new (await import('./sheets/client.js')).UpstreamError('Google API 500: oops', 500); } };
     expect((await handleCalendar(req(window()), env, down)).status).toBe(502);
   });
   it('is not configured without GOOGLE_CALENDAR_ID', () => {
     expect(() => calendarFromEnv({ GOOGLE_SHEETS_ID: 'x', GOOGLE_SERVICE_ACCOUNT_EMAIL: email, GOOGLE_PRIVATE_KEY: privateKey })).toThrow(ConfigError);
+  });
+});
+
+/** Answers shaped like Google's real error bodies, so the classification is checked against them. */
+function failingGoogle(tokenStatus: number | null, api: { status: number; body: unknown } | null) {
+  return (async (url: string) => {
+    if (url.startsWith('https://oauth2.googleapis.com/token')) {
+      return tokenStatus === null
+        ? new Response(JSON.stringify({ access_token: 't', expires_in: 3600 }), { status: 200 })
+        : new Response(JSON.stringify({ error: 'invalid_grant', error_description: 'Invalid JWT Signature.' }), { status: tokenStatus });
+    }
+    return new Response(JSON.stringify(api!.body), { status: api!.status });
+  }) as unknown as typeof fetch;
+}
+const run = (f: typeof fetch) => createGoogleCalendarSource({ calendarId: 'ana@example.com', ...cfg }, f).listEvents(new Date('2026-10-08T00:00:00Z'), new Date('2026-10-09T00:00:00Z'));
+const faultOf = async (f: typeof fetch) => run(f).then(() => 'ok', (e) => classifyCalendarError(e));
+
+describe('calendar errors are named, not guessed', () => {
+  it('a refused service-account key is an auth failure', async () => {
+    expect(await faultOf(failingGoogle(400, null))).toBe('calendar_auth_failed');
+  });
+  it('a disabled Calendar API is its own cause', async () => {
+    const body = { error: { code: 403, message: 'Google Calendar API has not been used in project 123 before or it is disabled.', errors: [{ reason: 'accessNotConfigured' }], status: 'PERMISSION_DENIED' } };
+    expect(await faultOf(failingGoogle(null, { status: 403, body }))).toBe('calendar_api_disabled');
+  });
+  it('a calendar that is missing or not shared is its own cause', async () => {
+    expect(await faultOf(failingGoogle(null, { status: 404, body: { error: { code: 404, message: 'Not Found', errors: [{ reason: 'notFound' }], status: 'NOT_FOUND' } } }))).toBe('calendar_not_shared');
+    expect(await faultOf(failingGoogle(null, { status: 403, body: { error: { code: 403, message: 'Forbidden', errors: [{ reason: 'forbidden' }] } } }))).toBe('calendar_not_shared');
+  });
+  it('Google being down is just upstream', async () => {
+    expect(await faultOf(failingGoogle(null, { status: 503, body: { error: { code: 503 } } }))).toBe('upstream');
+    expect(await faultOf((async () => { throw new TypeError('network'); }) as unknown as typeof fetch)).toBe('upstream');
+  });
+  it('maps each cause to its own response code', async () => {
+    const env = { DASHBOARD_ACCESS_KEY: 'k' };
+    const w = `from=${encodeURIComponent(new Date().toISOString())}&to=${encodeURIComponent(new Date(Date.now() + 3_600_000).toISOString())}`;
+    const call = async (f: typeof fetch) => {
+      const src = createGoogleCalendarSource({ calendarId: 'a@b.c', ...cfg }, f);
+      const res = await handleCalendar(new Request(`https://x.test/api/calendar?${w}`, { headers: { authorization: 'Bearer k' } }), env, { get: async (a: Date, b: Date) => ({ events: await src.listEvents(a, b), stale: false }) });
+      return [res.status, await res.text()];
+    };
+    expect(await call(failingGoogle(400, null))).toEqual([503, '{"error":"calendar_auth_failed"}']);
+    expect(await call(failingGoogle(null, { status: 404, body: { error: { errors: [{ reason: 'notFound' }] } } }))).toEqual([503, '{"error":"calendar_not_shared"}']);
+    expect(await call(failingGoogle(null, { status: 500, body: {} }))).toEqual([502, '{"error":"upstream"}']);
+  });
+});
+
+describe('calendar self-diagnosis', () => {
+  const env = { GOOGLE_SHEETS_ID: 's', GOOGLE_SERVICE_ACCOUNT_EMAIL: email, GOOGLE_PRIVATE_KEY: privateKey, GOOGLE_CALENDAR_ID: 'ana@example.com' };
+  it('reports every step as fine when it works, with a count and no titles', async () => {
+    const { fetchImpl } = fakeGoogle(() => ({ items: [{ id: '1', summary: 'Secret board meeting', start: { dateTime: '2026-10-08T15:00:00+01:00' }, end: { dateTime: '2026-10-08T16:00:00+01:00' } }] }));
+    const d = await diagnoseCalendar(env, fetchImpl, new Date('2026-10-08T12:00:00Z'));
+    expect(d).toMatchObject({ ok: true, serviceAccount: email, calendarId: 'ana@example.com', eventsToday: 1 });
+    expect(d.steps.map((s) => [s.step, s.ok])).toEqual([['configuration', true], ['access token', true], ['read calendar', true]]);
+    const text = JSON.stringify(d);
+    expect(text).not.toContain('Secret board meeting');
+    expect(text).not.toContain('PRIVATE KEY');
+  });
+  it('says exactly which step failed, with the thing to do about it', async () => {
+    const noId = await diagnoseCalendar({ ...env, GOOGLE_CALENDAR_ID: '' }, fetch);
+    expect(noId.steps[0]).toMatchObject({ ok: false, detail: 'missing: GOOGLE_CALENDAR_ID' });
+    const badKey = await diagnoseCalendar(env, failingGoogle(400, null));
+    expect(badKey.steps.find((s) => s.step === 'access token')).toMatchObject({ ok: false });
+    expect(badKey.steps.some((s) => s.step === 'read calendar')).toBe(false);
+    const notShared = await diagnoseCalendar(env, failingGoogle(null, { status: 404, body: { error: { errors: [{ reason: 'notFound' }] } } }));
+    expect(notShared.steps.at(-1)).toMatchObject({ step: 'read calendar', ok: false });
+    expect(notShared.steps.at(-1)!.detail).toMatch(/Share the calendar with the service account email/);
+    expect(JSON.stringify(notShared)).not.toContain('PRIVATE KEY');
+  });
+  it('is available to the signed-in owner only', async () => {
+    const res = await handleCalendar(new Request('https://x.test/api/calendar?diagnose=1'), { DASHBOARD_ACCESS_KEY: 'k' });
+    expect(res.status).toBe(401);
   });
 });

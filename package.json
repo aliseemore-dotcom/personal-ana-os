@@ -10,7 +10,8 @@
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "dev:mock": "SHEETS_MOCK=1 VITE_DATA_SOURCE=sheets vite",
-    "sheets:check": "tsx --env-file-if-exists=.env.local scripts/check-sheet.ts"
+    "sheets:check": "tsx --env-file-if-exists=.env.local scripts/check-sheet.ts",
+    "calendar:check": "tsx --env-file-if-exists=.env.local scripts/check-calendar.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.117.3",

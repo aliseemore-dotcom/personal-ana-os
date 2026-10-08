@@ -1,4 +1,5 @@
 import type { CalendarEvent } from '../src/domain/types.js';
+import { londonDayRange } from '../src/domain/london.js';
 import { ConfigError, createTokenSource, googleCall, googleConfigFromEnv, UpstreamError } from './sheets/client.js';
 
 /**
@@ -104,3 +105,72 @@ export function calendarFromEnv(env: Record<string, string | undefined> = proces
 }
 
 export { UpstreamError };
+
+/** What went wrong, in terms a person can act on. Never includes keys, tokens or raw Google text. */
+export type CalendarFault = 'calendar_not_configured' | 'calendar_auth_failed' | 'calendar_api_disabled' | 'calendar_not_shared' | 'upstream';
+
+export function classifyCalendarError(e: unknown): CalendarFault {
+  if (e instanceof ConfigError) return 'calendar_not_configured';
+  if (e instanceof UpstreamError) {
+    // The service account could not even get a token: wrong or revoked key, or the machine clock is off.
+    if (e.stage === 'token' && e.status && e.status >= 400 && e.status < 500) return 'calendar_auth_failed';
+    if (e.stage === 'api') {
+      if (e.reason === 'accessNotConfigured' || e.reason === 'SERVICE_DISABLED' || e.reason === 'PERMISSION_DENIED' && /has not been used|is disabled/i.test(e.message)) return 'calendar_api_disabled';
+      if (e.status === 404 || e.status === 403) return 'calendar_not_shared';
+      if (e.status === 401) return 'calendar_auth_failed';
+    }
+  }
+  return 'upstream';
+}
+
+export interface DiagnosticStep {
+  step: string;
+  ok: boolean;
+  /** A short, safe explanation or hint. */
+  detail?: string;
+}
+
+const HINTS: Record<CalendarFault, string> = {
+  calendar_not_configured: 'Set GOOGLE_CALENDAR_ID (and the service account variables) in Vercel, then redeploy.',
+  calendar_auth_failed: 'Google refused the service account key. Check GOOGLE_SERVICE_ACCOUNT_EMAIL and GOOGLE_PRIVATE_KEY.',
+  calendar_api_disabled: 'Enable the Google Calendar API in the same Google Cloud project as the service account.',
+  calendar_not_shared: 'Share the calendar with the service account email ("See all event details"), and check GOOGLE_CALENDAR_ID.',
+  upstream: 'Google could not be reached or answered with an error. Try again shortly; see the server log.',
+};
+export const hintFor = (f: CalendarFault) => HINTS[f];
+
+/**
+ * Walks the same path the dashboard uses, one step at a time, so a missing permission is named
+ * instead of guessed at. Safe to show to the signed-in owner: no secrets, no event titles.
+ */
+export async function diagnoseCalendar(env: Record<string, string | undefined>, fetchImpl: typeof fetch = fetch, now: Date = new Date()): Promise<{ ok: boolean; serviceAccount: string | null; calendarId: string | null; eventsToday: number | null; steps: DiagnosticStep[] }> {
+  const steps: DiagnosticStep[] = [];
+  const serviceAccount = env.GOOGLE_SERVICE_ACCOUNT_EMAIL?.trim() || null;
+  const calendarId = env.GOOGLE_CALENDAR_ID?.trim() || null;
+  const out = (ok: boolean, eventsToday: number | null = null) => ({ ok, serviceAccount, calendarId, eventsToday, steps });
+  let cfg;
+  try {
+    const calId = env.GOOGLE_CALENDAR_ID?.trim();
+    if (!calId) throw new ConfigError(['GOOGLE_CALENDAR_ID']);
+    cfg = { ...googleConfigFromEnv(env), calendarId: calId };
+    steps.push({ step: 'configuration', ok: true });
+  } catch (e) {
+    steps.push({ step: 'configuration', ok: false, detail: e instanceof ConfigError ? `missing: ${e.missing.join(', ')}` : 'invalid' });
+    return out(false);
+  }
+  const { from, to } = londonDayRange(now);
+  try {
+    const source = createGoogleCalendarSource({ calendarId: cfg.calendarId, serviceAccountEmail: cfg.serviceAccountEmail, privateKey: cfg.privateKey }, fetchImpl);
+    // Token and events in one call; the fault tells us which step failed.
+    const events = await source.listEvents(from, to);
+    steps.push({ step: 'access token', ok: true }, { step: 'read calendar', ok: true, detail: `${events.length} event(s) today in Europe/London` });
+    return out(true, events.length);
+  } catch (e) {
+    const fault = classifyCalendarError(e);
+    console.error('[calendar] diagnose', (e as Error).message);
+    const tokenFailed = fault === 'calendar_auth_failed' || (e as UpstreamError)?.stage === 'token';
+    steps.push({ step: 'access token', ok: !tokenFailed, detail: tokenFailed ? HINTS[fault] : undefined });
+    if (!tokenFailed) steps.push({ step: 'read calendar', ok: false, detail: HINTS[fault] });
+    return out(false);
+  }
+}

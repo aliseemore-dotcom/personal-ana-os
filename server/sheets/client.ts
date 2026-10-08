@@ -18,7 +18,7 @@ export class ConfigError extends Error {
 }
 
 export class UpstreamError extends Error {
-  constructor(message: string, public status?: number) {
+  constructor(message: string, public status?: number, public reason?: string, public stage?: 'token' | 'api') {
     super(message);
   }
 }
@@ -56,8 +56,16 @@ export async function googleCall(fetchImpl: typeof fetch, url: string, init: Req
   try {
     const res = await fetchImpl(url, { ...init, signal: ctrl.signal });
     if (!res.ok) {
-      const detail = (await res.text().catch(() => '')).slice(0, 300);
-      throw new UpstreamError(`Google API ${res.status}: ${detail}`, res.status);
+      const raw = (await res.text().catch(() => '')).slice(0, 600);
+      let reason: string | undefined;
+      try {
+        const j = JSON.parse(raw);
+        // Calendar/Sheets errors: error.errors[0].reason or error.status; token endpoint: error + error_description.
+        reason = j?.error?.errors?.[0]?.reason ?? j?.error?.status ?? (typeof j?.error === 'string' ? j.error : undefined);
+      } catch {
+        /* not JSON */
+      }
+      throw new UpstreamError(`Google API ${res.status}${reason ? ` (${reason})` : ''}: ${raw.slice(0, 300)}`, res.status, reason, url.startsWith(TOKEN_URL) ? 'token' : 'api');
     }
     return await res.json();
   } catch (e) {

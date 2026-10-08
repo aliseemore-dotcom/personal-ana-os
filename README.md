@@ -62,7 +62,7 @@ Routes: `#projects` (card grid), `#projects/<project>` (Project HQ), `#projects/
 - **Quick capture** writes to `inbox_items` (id, content, created_at, status=`inbox`). Press `C` to open it.
 - **Daily question** is chosen by day-of-year; answers are stored with date + question (`daily_answers`; `listDailyAnswers` exists, no history UI yet).
 - **Reschedule** also moves a deadline that would still be in the past, otherwise the task would stay "overdue".
-- **Google Calendar** is read on the server (`/api/calendar`, same service account, read-only scope). Setup is in [docs/DATA_HUB.md](docs/DATA_HUB.md). Demo events appear only on local demo data.
+- **Google Calendar** is read on the server (`/api/calendar`, same service account, read-only scope). Today's meetings in Europe/London time, refreshed every 60 seconds. Setup, error messages and the real-credentials check (`npm run calendar:check`) are in [docs/DATA_HUB.md](docs/DATA_HUB.md). Demo events appear only on local demo data.
 - **Inbox:** raw captures from the "+" button and tasks with status Inbox share the Inbox column. Moving a capture anywhere turns it into a task.
 - **Rescheduling:** only moving a planned date later counts as a reschedule (3 or more flags repeated postponement).
 - **"Keep" / "Keep waiting"** record a review, which restarts the idle clocks for that task.

@@ -68,9 +68,16 @@ export const t = {
   comingUp: {
     title: 'Coming up',
     now: 'Now',
-    empty: (hours: number) => `Nothing in the next ${hours} hours.`,
-    error: 'Calendar is unavailable right now.',
-    notConnected: 'Google Calendar is not connected yet.',
+    empty: 'No more meetings today.',
+    until: (end: string) => `until ${end}`,
+    more: (n: number) => `${n} more later today`,
+    problem: {
+      not_configured: 'Google Calendar is not connected yet.',
+      not_shared: 'Google Calendar is not shared with the dashboard yet.',
+      api_disabled: 'The Google Calendar API is not switched on yet.',
+      auth_failed: 'Google refused the dashboard’s access. Check the service account key.',
+      unavailable: 'Calendar is unavailable right now.',
+    } as Record<'not_configured' | 'not_shared' | 'api_disabled' | 'auth_failed' | 'unavailable', string>,
     inMinutes: (m: number) => (m < 60 ? `in ${m} min` : `in ${Math.floor(m / 60)} h${m % 60 ? ` ${m % 60} min` : ''}`),
   },
 
