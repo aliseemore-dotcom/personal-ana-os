@@ -1,0 +1,140 @@
+/* =========================================================
+   «Лабораторное стекло» — дизайн-токены, v3 (dark-first)
+   Сайт-визитка репетитора по химии
+   Шрифты (в <head>):
+   <link rel="preconnect" href="https://fonts.googleapis.com">
+   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+   <link href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+   Основная тема — тёмная «Ночная лаборатория».
+   Светлая — запасная, включается <html data-theme="light">.
+   ========================================================= */
+
+:root {
+  color-scheme: dark;
+
+  /* ---------- Цвет ---------- */
+  --c-flask:        #05070C;  /* Бездна — фон страницы */
+  --c-flask-deep:   #0A0E17;  /* Глубина — чередующиеся секции */
+  --c-abyss:        #020308;  /* Самый тёмный — секция «Результаты» */
+  --c-ink:          #EEF1F6;  /* Текст */
+  --c-ash:          #8E97A8;  /* Вторичный текст (AA на #05070C) */
+  --c-line:         #1E2536;  /* Линии, разделители */
+  --c-cobalt:       #3B5BFF;  /* Кобальт — фирменный акцент */
+  --c-cobalt-ink:   #8FA2FF;  /* Кобальт для текста и ссылок */
+  --c-cobalt-mist:  #121A45;  /* Кобальтовая глубина — подложки */
+  --c-lime:         #C2F53D;  /* Индикатор — только «результат / да / сейчас» */
+  --c-ice:          #0E2238;  /* для градиентных пятен */
+  --c-lilac:        #1A1440;  /* для градиентных пятен */
+  --c-white:        #FFFFFF;
+  --c-error:        #FF6B5E;
+
+  /* ---------- Градиенты ---------- */
+  --grad-cobalt: linear-gradient(135deg, #5C78FF 0%, #3B5BFF 45%, #1A2DB8 100%);
+  --grad-glass:  linear-gradient(155deg, rgba(255,255,255,.09) 0%, rgba(255,255,255,.02) 100%);
+  --grad-lime-arrow: linear-gradient(90deg, #3B5BFF, #C2F53D);
+  --grad-hero-word:  linear-gradient(180deg, #FFFFFF 25%, rgba(255,255,255,.28) 100%);
+  --bg-aurora:
+    radial-gradient(900px 620px at 85% -5%, rgba(59,91,255,.38), transparent 62%),
+    radial-gradient(700px 520px at -5% 40%, rgba(110,90,255,.22), transparent 62%),
+    radial-gradient(600px 420px at 95% 72%, rgba(59,91,255,.20), transparent 62%),
+    radial-gradient(520px 380px at 15% 100%, rgba(194,245,61,.07), transparent 62%);
+  /* Зерно поверх всего — убирает «пластиковость» градиентов */
+  --grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)' opacity='.55'/></svg>");
+
+  /* ---------- Стекло ---------- */
+  --glass-bg:        rgba(255,255,255,0.05);
+  --glass-bg-strong: rgba(14,18,30,0.85);
+  --glass-border:    rgba(255,255,255,0.10);
+  --glass-blur:      22px;
+  --glass-shadow:    0 1px 0 rgba(255,255,255,.08) inset,
+                     0 30px 60px -30px rgba(0,0,0,.85);
+
+  /* ---------- Типографика ---------- */
+  --font-sans: "Golos Text", "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --fs-hero:  clamp(4.5rem, 16vw, 13rem);
+  --fs-h1:    clamp(2.25rem, 5vw, 3.5rem);
+  --fs-h2:    clamp(1.75rem, 3.5vw, 2.5rem);
+  --fs-h3:    1.375rem;
+  --fs-lead:  1.1875rem;
+  --fs-body:  1.0625rem;
+  --fs-small: 0.875rem;
+  --fs-micro: 0.75rem;
+  --lh-tight: 1.0;  --lh-head: 1.15;  --lh-body: 1.6;
+  --fw-regular: 400; --fw-medium: 500; --fw-semi: 600;
+  --tracking-hero: -0.05em; --tracking-head: -0.02em;
+  --measure: 64ch;
+
+  /* ---------- Отступы ---------- */
+  --s-1: 4px;  --s-2: 8px;  --s-3: 12px; --s-4: 16px;
+  --s-5: 24px; --s-6: 32px; --s-7: 48px; --s-8: 64px;
+  --s-9: 96px; --s-10: 128px;
+  --section-y: clamp(64px, 10vw, 128px);
+  --gutter:    clamp(16px, 4vw, 40px);
+  --container: 1200px;
+
+  /* ---------- Радиусы ---------- */
+  --r-frame: 32px; --r-panel: 24px; --r-tile: 10px; --r-input: 14px; --r-pill: 999px;
+
+  /* ---------- Движение ---------- */
+  --ease-out: cubic-bezier(.2,.7,.2,1);
+  --t-fast: 160ms; --t-base: 280ms; --t-slow: 900ms;
+
+  --focus-ring: 0 0 0 3px var(--c-flask), 0 0 0 5px var(--c-lime);
+}
+
+/* ---------- Светлая тема (запасная) ---------- */
+:root[data-theme="light"] {
+  color-scheme: light;
+  --c-flask: #EDEFF2; --c-flask-deep: #E2E5EA; --c-abyss: #08090C;
+  --c-ink: #15171C; --c-ash: #5E646E; --c-line: #C9CDD4;
+  --c-cobalt: #2340FF; --c-cobalt-ink: #1A30C7; --c-cobalt-mist: #DCE1FF;
+  --c-lime: #5E8F00;  /* на светлом фоне лайм темнее, иначе не читается */
+  --c-ice: #CFE6FF; --c-lilac: #E3DEFF; --c-error: #B42318;
+  --grad-glass: linear-gradient(155deg, rgba(255,255,255,.85) 0%, rgba(255,255,255,.35) 100%);
+  --grad-hero-word: linear-gradient(180deg, #15171C 30%, rgba(21,23,28,.35) 100%);
+  --bg-aurora:
+    radial-gradient(900px 600px at 85% 0%, #DCE1FF, transparent 60%),
+    radial-gradient(700px 500px at 0% 35%, #CFE6FF, transparent 60%),
+    radial-gradient(800px 600px at 100% 70%, #E3DEFF, transparent 60%);
+  --glass-bg: rgba(255,255,255,.62); --glass-bg-strong: rgba(255,255,255,.82);
+  --glass-border: rgba(255,255,255,.85);
+  --glass-shadow: 0 1px 0 rgba(255,255,255,.9) inset, 0 24px 48px -24px rgba(21,23,28,.18);
+  --focus-ring: 0 0 0 3px var(--c-flask), 0 0 0 5px var(--c-cobalt);
+}
+
+/* ---------- Базовые утилиты ---------- */
+body {
+  background: var(--bg-aurora), var(--c-flask);
+  background-attachment: fixed;
+  color: var(--c-ink);
+}
+body::after { /* зерно */
+  content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 100;
+  background-image: var(--grain); opacity: .07; mix-blend-mode: overlay;
+}
+.glass {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+  backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .glass { background: var(--glass-bg-strong); }
+}
+.btn--primary {
+  background: var(--grad-cobalt); color: #fff;
+  box-shadow: 0 1px 0 rgba(255,255,255,.3) inset, 0 14px 30px -10px rgba(59,91,255,.75);
+}
+.indicator { /* лаймовая точка-статус */
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--c-lime); box-shadow: 0 0 12px var(--c-lime);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important; animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}
