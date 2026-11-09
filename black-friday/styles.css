@@ -5,7 +5,7 @@
   --old:#9A9A9A; --old-m:#E8BDBE; --on-maroon:#F2D9DA; --on-maroon-2:#F7E6E6;
   --gray-b:#BDBDBD; --gray-b2:#E0E0E0;
   --line:#E5E5E5; --line-card:#E2D6D6; --milk:#F7F2F2; --ph:#F2ECEC;
-  --serif:'Oranienbaum',serif;
+  --serif:'Oranienbaum','Inter',serif;
   --pad:clamp(20px,3vw,40px);
   --sec:clamp(56px,8vw,120px);
   --bar:56px;
@@ -25,6 +25,7 @@ img{max-width:100%}
 @keyframes bf-marquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}html{scroll-behavior:auto}}
 
+.star{display:inline-block;flex:none;width:.7em;height:.7em;background:currentColor;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 0C12.9 7 17 11.1 24 12 17 12.9 12.9 17 12 24 11.1 17 7 12.9 0 12 7 11.1 11.1 7 12 0Z'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 0C12.9 7 17 11.1 24 12 17 12.9 12.9 17 12 24 11.1 17 7 12.9 0 12 7 11.1 11.1 7 12 0Z'/%3E%3C/svg%3E") center/contain no-repeat}
 .muted{color:var(--muted)}
 .pre{white-space:pre-line}
 .accent{color:var(--maroon)}
@@ -100,7 +101,7 @@ img{max-width:100%}
 /* Бегущая строка */
 .marquee{background:#000;overflow:hidden;padding:15px 0 13px}
 .marquee__track{display:flex;width:max-content;font-family:var(--serif);font-size:clamp(22px,2.4vw,34px);line-height:1;text-transform:uppercase;animation:bf-marquee 38s linear infinite}
-.marquee__sep{color:var(--red);margin:0 28px}
+.marquee__sep{color:var(--red);margin:0 28px;width:.6em;height:.6em;align-self:center}
 .marquee__t{white-space:nowrap}
 
 /* Тарифы */

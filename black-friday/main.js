@@ -134,7 +134,7 @@
     if (o.oldNote) prices.appendChild(el('span', 'card__oldnote', o.oldNote));
     foot.appendChild(prices);
     var b = el('a', 'card__btn');
-    if (o.featured) { b.appendChild(el('span', null, '✦')); b.appendChild(el('span', null, o.btn.label)); b.appendChild(el('span', null, '✦')); }
+    if (o.featured) { b.appendChild(el('span', 'star')); b.appendChild(el('span', null, o.btn.label)); b.appendChild(el('span', 'star')); }
     else b.textContent = o.btn.label;
     applyBtn(b, o.btn);
     foot.appendChild(b);
@@ -297,7 +297,7 @@
   for (var r = 0; r < 4; r++) phrases.forEach(function (p) {
     var s1 = el('span', 'marquee__t', typo(p[0])); s1.style.color = p[1];
     mq.appendChild(s1);
-    mq.appendChild(el('span', 'marquee__sep', '✦'));
+    mq.appendChild(el('span', 'marquee__sep star'));
   });
 
   // ---------- Прокрутка ----------
