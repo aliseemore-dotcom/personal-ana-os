@@ -212,4 +212,42 @@ img{max-width:100%}
   .hero__black{display:flex}
   .hero__main{order:2}
   .offers,.course,.sun{scroll-margin-top:60px}
+  :root{--sec:52px}
+  .hero__top{font-size:13px;white-space:nowrap}
+  .hero__top .muted{display:none}
+  .hero__photo{margin-top:16px}
+  .hero__grid{height:clamp(420px,120vw,560px)}
+  .hero__bf{bottom:28px}
+  .hero__black{margin-top:16px}
+  .hero__main{padding:24px 0 20px;gap:24px}
+  .h1{font-size:clamp(38px,11.4vw,48px);line-height:.95}
+  .lead{font-size:17px;line-height:1.5}
+  .hero__date{font-size:14px}
+  .btn-grad,.btn-white{height:58px;font-size:17px}
+  .marquee{padding:12px 0 10px}
+  .h2{font-size:clamp(34px,10.4vw,46px);line-height:.94}
+  .h2--md,.h2--sun{font-size:clamp(32px,9.6vw,42px)}
+  .wrap--gap{gap:28px}
+  .offers .wrap{padding-top:44px;padding-bottom:44px}
+  .cards{gap:12px;max-width:none}
+  .card{padding:22px 20px;gap:14px}
+  .card__name{font-size:28px}
+  .card__for{font-size:15px}
+  .card__inside{font-size:14px;padding:10px 0}
+  .card__price{font-size:48px}
+  .card__btn{height:56px}
+  .card__foot{gap:12px}
+  .course__body{gap:28px;padding-top:24px}
+  .lessons li{padding:14px 0 12px}
+  .lessons .t{font-size:24px}
+  .price-xl{font-size:64px}
+  .sun__in{padding:0 0 var(--pad);gap:0}
+  .sun__photo{flex:none;width:100%;min-height:0;aspect-ratio:4/4.4;background-position:60% 30%}
+  .sun__body{padding:28px var(--pad) 0;gap:26px}
+  .sun__btn{flex:1 1 100%;max-width:none}
+  .sun__buy{gap:20px}
+  .about__photo{flex:1 1 100%;max-width:none;aspect-ratio:4/4.4}
+  .faq__q{padding:16px 0;min-height:56px}
+  .faq__a{padding-right:8px}
+  .footer__big{font-size:13.6vw}
 }
