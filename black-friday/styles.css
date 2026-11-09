@@ -361,3 +361,70 @@ body{font-weight:400;line-height:1.5}
   .hero__black-t{font-size:28px}
   .footer__big{font-size:13vw}
 }
+
+
+/* ===== Финальная типографика =====
+   Oranienbaum: заголовки (капс) и ВСЕ цифры (цены, скидки, таймер, номера).
+   Montserrat 400/600: весь остальной текст по одной шкале:
+   текст 17/16 px, мелкий 14 px, метки 12 px капсом. ===== */
+:root{--fs:17px;--fs-s:14px;--lh:1.55;--lh-s:1.45}
+
+/* — основной текст: одинаковый везде — */
+.lead,.intro,.sun__lead,.about__p,.how__p,.card__for,.faq__a,.topics li,.course__bundle,.ended-note,.card__ended{
+  font-family:"Montserrat","Helvetica Neue",Arial,sans-serif;font-size:var(--fs);line-height:var(--lh);font-weight:400;letter-spacing:0;max-width:640px;text-wrap:pretty}
+.lead,.intro,.about__p,.how__p,.card__for,.faq__a{color:var(--text-2)}
+.sun__lead,.topics li{color:var(--on-maroon-2)}
+.card--feat .card__for{color:var(--on-maroon-2)}
+.topics li{font-size:var(--fs)}
+.faq__q{font-size:var(--fs);line-height:var(--lh);font-weight:600}
+.faq__a{padding-right:48px}
+
+/* — мелкий текст — */
+.eyebrow,.sun__eyebrow,.card__inside,.card__oldnote,.course__access,.sun__access,.hero__date,.hero__top,.bar__note,.footer__row,.footer__copy,.bar__ended,.bar__unit i,.hero__black-pl,.sticker__l{
+  font-family:"Montserrat","Helvetica Neue",Arial,sans-serif;font-size:var(--fs-s);line-height:var(--lh-s);font-weight:400}
+.hero__black-pl,.sticker__l,.bar__unit i{font-size:12px}
+.card__badge{font-size:var(--fs-s);font-weight:600}
+.kicker{font-size:12px;font-weight:600;letter-spacing:.1em;line-height:1.4}
+
+/* — кнопки: один стиль — */
+.btn-grad,.btn-white,.card__btn,.bar__btn{font-size:16px;font-weight:600;letter-spacing:.01em}
+.bar__btn{font-size:14px}
+
+/* — цифры: Oranienbaum (₽ подхватывается из Montserrat) — */
+.card__price,.price-xl,.card__pct,.pct--sm,.sticker__n,.bar__unit b,.bar__badge,.hero__black-pn,.lessons .n,.topics .n,.marquee__track,.card__old,.price-old__s,.lessons .t{
+  font-family:var(--display);font-weight:400;letter-spacing:0}
+.card__price{font-size:clamp(48px,4vw,60px);line-height:.95}
+.price-xl{font-size:clamp(64px,6vw,96px);line-height:.9}
+.card__pct{font-size:24px;line-height:1;padding:7px 10px 5px}
+.pct--sm{font-size:22px;line-height:1;padding:6px 10px 4px}
+.card__old,.price-old__s{font-size:20px;line-height:1.1}
+.sticker__n{font-size:clamp(44px,5vw,74px);line-height:.9}
+.bar__unit b{font-size:clamp(20px,2vw,28px);line-height:1}
+.bar__badge{font-size:clamp(17px,1.6vw,22px);line-height:1;padding:5px 8px 3px}
+.hero__black-pn{font-size:52px;line-height:.9}
+.lessons .n,.topics .n{font-size:20px;line-height:1}
+.topics .n{color:var(--on-maroon)}
+.lessons .t{text-transform:uppercase;font-size:clamp(24px,2.2vw,30px);line-height:1}
+.marquee__track{font-size:clamp(22px,2.4vw,34px);line-height:1;text-transform:uppercase}
+
+@media (max-width:759px){
+  :root{--fs:16px}
+  body{font-size:16px}
+  .lead,.intro,.sun__lead,.about__p,.how__p,.card__for,.faq__a,.topics li,.faq__q{font-size:var(--fs);line-height:var(--lh)}
+  .faq__a{padding-right:8px}
+  .eyebrow,.sun__eyebrow{font-size:var(--fs-s)}
+  .card__inside{font-size:var(--fs-s);padding:var(--s2) 0;gap:6px}
+  .card__price{font-size:44px}
+  .price-xl{font-size:64px}
+  .card__old,.price-old__s{font-size:18px}
+  .lessons .t{font-size:24px;line-height:1}
+  .lessons .n,.topics .n{font-size:18px}
+  .topics li{padding:var(--s2) 0;grid-template-columns:36px 1fr}
+  .lessons li{grid-template-columns:36px 1fr}
+  .sticker__n{font-size:40px}
+  .marquee__track{font-size:22px}
+  .bar__unit b{font-size:20px}
+  .bar__badge{font-size:17px}
+  .btn-grad,.btn-white,.card__btn{font-size:16px}
+  .footer__row{font-size:var(--fs-s)}
+}
