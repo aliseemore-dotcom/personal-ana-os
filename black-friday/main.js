@@ -115,11 +115,20 @@
   function card(o, full) {
     var a = el('article', 'card' + (o.featured ? ' card--feat' : ''));
     if (full && o.key === 'bundle') a.id = 'offer-bundle';
+    if (full) {
+      var im = el('div', 'card__img'), tiles = {
+        sun: [['lipstick.jpg', '60% 30%']],
+        course: [['teaching.jpg', '40% 25%']],
+        bundle: [['cosmetics.png', '50% 55%'], ['teaching.jpg', '40% 25%']]
+      }[o.key];
+      tiles.forEach(function (tl) { var i = el('i'); i.style.backgroundImage = 'url(assets/' + tl[0] + ')'; i.style.backgroundPosition = tl[1]; im.appendChild(i); });
+      a.appendChild(im);
+    }
     if (o.featured) { if (o.badge) a.appendChild(el('span', 'card__badge', o.badge)); }
     else if (o.pct) a.appendChild(el('span', 'card__pct', o.pct));
     a.appendChild(el('h3', 'card__name', o.name));
     if (full) {
-      a.appendChild(el('p', 'card__for', o.forWho));
+      a.appendChild(el('p', 'card__for m-hide', o.forWho));
       var ins = el('div', 'card__inside');
       ins.appendChild(el('span', null, o.inside));
       ins.appendChild(el('span', null, o.access));
