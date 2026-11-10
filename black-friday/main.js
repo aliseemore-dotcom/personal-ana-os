@@ -7,6 +7,13 @@
   var NB = ' ';
   var draft = C.previewMode !== false;
 
+  // ---------- Картинки (адреса можно переопределить в config.js → images) ----------
+  var IMG_DEFAULT = { cosmetics: 'assets/cosmetics.png', teaching: 'assets/teaching.jpg', lipstick: 'assets/lipstick.jpg', closeup: 'assets/closeup.jpg' };
+  Object.keys(IMG_DEFAULT).forEach(function (k) {
+    var u = (C.images && C.images[k]) || IMG_DEFAULT[k];
+    document.documentElement.style.setProperty('--img-' + k, 'url("' + u + '")');
+  });
+
   // ---------- Типограф: неразрывные пробелы ----------
   var SHORT = 'в|во|с|со|к|ко|у|о|об|от|до|по|за|на|из|без|для|при|про|над|под|и|а|но|да|или|не|ни|что|как|же|ли|бы|то';
   var RE_SHORT = new RegExp('(^|[^\\p{L}\\p{N}])(' + SHORT + ')[ \\t\\n]+', 'giu');
@@ -117,11 +124,11 @@
     if (full && o.key === 'bundle') a.id = 'offer-bundle';
     if (full) {
       var im = el('div', 'card__img'), tiles = {
-        sun: [['lipstick.jpg', '60% 30%']],
-        course: [['teaching.jpg', '40% 25%']],
-        bundle: [['cosmetics.png', '50% 55%'], ['teaching.jpg', '40% 25%']]
+        sun: [['lipstick', '60% 30%']],
+        course: [['teaching', '40% 25%']],
+        bundle: [['cosmetics', '50% 55%'], ['teaching', '40% 25%']]
       }[o.key];
-      tiles.forEach(function (tl) { var i = el('i'); i.style.backgroundImage = 'url(assets/' + tl[0] + ')'; i.style.backgroundPosition = tl[1]; im.appendChild(i); });
+      tiles.forEach(function (tl) { var i = el('i'); i.style.backgroundImage = 'var(--img-' + tl[0] + ')'; i.style.backgroundPosition = tl[1]; im.appendChild(i); });
       a.appendChild(im);
     }
     if (o.featured) { if (o.badge) a.appendChild(el('span', 'card__badge', o.badge)); }
@@ -326,7 +333,7 @@
   });
 
   // ---------- Запуск ----------
-  typografy(document.body);
+  typografy(document.getElementById('bf-root') || document.body);
   renderCards();
   syncState();
   tick();

@@ -157,7 +157,7 @@ img{max-width:100%}
 /* Мастер-класс */
 .sun{background:var(--maroon);color:#fff;scroll-margin-top:64px}
 .sun__in{max-width:1440px;margin:0 auto;padding:var(--pad);display:flex;flex-wrap:wrap;gap:clamp(32px,5vw,80px)}
-.sun__photo{flex:1 1 420px;min-height:clamp(420px,50vw,820px);background:url(assets/lipstick.jpg) 60% 40%/cover no-repeat var(--maroon-d)}
+.sun__photo{flex:1 1 420px;min-height:clamp(420px,50vw,820px);background:var(--img-lipstick) 60% 40%/cover no-repeat var(--maroon-d)}
 .sun__body{flex:1 1 520px;min-width:0;padding:clamp(12px,3vw,40px) 0 clamp(24px,3vw,40px);display:flex;flex-direction:column;gap:clamp(26px,3.2vw,36px)}
 .sun__eyebrow{font-size:16px;color:var(--on-maroon)}
 .sun__lead{margin:8px 0 0;font-size:clamp(17px,1.4vw,19px);line-height:1.55;color:var(--on-maroon-2);max-width:640px;text-wrap:pretty}
@@ -174,7 +174,7 @@ img{max-width:100%}
 .guide{display:block;width:100%;max-width:960px;height:auto;border:1px solid var(--line)}
 .about{border-top:1px solid var(--line)}
 .about__in{display:flex;flex-wrap:wrap;gap:clamp(32px,5vw,80px);align-items:center}
-.about__photo{flex:1 1 360px;aspect-ratio:4/5;max-width:620px;background:url(assets/closeup.jpg) 58% 40%/cover no-repeat var(--ph)}
+.about__photo{flex:1 1 360px;aspect-ratio:4/5;max-width:620px;background:var(--img-closeup) 58% 40%/cover no-repeat var(--ph)}
 .about__text{flex:1 1 420px;min-width:0;display:flex;flex-direction:column;gap:24px}
 .about__p{margin:0;font-size:clamp(18px,1.6vw,22px);line-height:1.5;max-width:560px;text-wrap:pretty}
 .how{background:var(--milk)}
@@ -324,7 +324,7 @@ body{font-weight:400;line-height:1.5}
   .card__btn{height:54px;font-size:15px}
   .card__foot{gap:var(--s2);padding-top:0}
   .course__body{gap:var(--s3);padding-top:var(--s3)}
-  .course__photo{flex:1 1 100%;aspect-ratio:16/11;background:url(assets/teaching.jpg) 40% 22%/cover no-repeat var(--ph);margin-bottom:var(--s1)}
+  .course__photo{flex:1 1 100%;aspect-ratio:16/11;background:var(--img-teaching) 40% 22%/cover no-repeat var(--ph);margin-bottom:var(--s1)}
   .lessons li{grid-template-columns:32px 1fr;padding:var(--s2) 0}
   .lessons .t{font-size:16px}
   .price-xl{font-size:48px}
