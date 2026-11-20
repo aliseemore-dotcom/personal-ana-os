@@ -6,13 +6,7 @@
   var pad = function (n) { return String(n).padStart(2, '0'); };
   var NB = ' ';
   var draft = C.previewMode !== false;
-
-  // ---------- Картинки (адреса можно переопределить в config.js → images) ----------
-  var IMG_DEFAULT = { cosmetics: 'assets/cosmetics.png', teaching: 'assets/teaching.jpg', lipstick: 'assets/lipstick.jpg', closeup: 'assets/closeup.jpg' };
-  Object.keys(IMG_DEFAULT).forEach(function (k) {
-    var u = (C.images && C.images[k]) || IMG_DEFAULT[k];
-    document.documentElement.style.setProperty('--img-' + k, 'url("' + u + '")');
-  });
+  var esc = function (s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
 
   // ---------- Типограф: неразрывные пробелы ----------
   var SHORT = 'в|во|с|со|к|ко|у|о|об|от|до|по|за|на|из|без|для|при|про|над|под|и|а|но|да|или|не|ни|что|как|же|ли|бы|то';
@@ -39,32 +33,27 @@
   // ---------- Данные ----------
   var fmt = function (n) { return Number(n).toLocaleString('ru-RU').replace(/ | |\s/g, NB) + NB + '₽'; };
   var pctOf = function (n, o) { return o > n ? Math.round((1 - n / o) * 100) : 0; };
+  var num = function (v, d) { return v != null && v !== '' ? Number(v) : d; };
 
-  var cp = C.coursePrice != null ? C.coursePrice : 3990;
-  var sp = C.sunmakeupPrice != null ? C.sunmakeupPrice : 1990;
-  var bp = C.bundlePrice != null ? C.bundlePrice : 5780;
-  var cOld = C.courseOldPrice != null ? C.courseOldPrice : 5500;
-  var sOld = C.sunmakeupOldPrice != null ? C.sunmakeupOldPrice : 3000;
-  var separate = cp + sp, save = separate - bp;
-  var cPct = pctOf(cp, cOld), sPct = pctOf(sp, sOld);
-  var maxN = Math.max(cPct, sPct);
-  var maxPct = maxN > 0 ? maxN + '%' : '';
+  var cp = num(C.coursePrice, 3990), sp = num(C.sunmakeupPrice, 1990), bp = num(C.bundlePrice, 5690);
+  var cOld = num(C.courseOldPrice, 7000), sOld = num(C.sunmakeupOldPrice, 5000), bOld = num(C.bundleOldPrice, 12000);
+  var cPct = pctOf(cp, cOld), sPct = pctOf(sp, sOld), bPct = pctOf(bp, bOld);
+  var bSave = bOld - bp;
+  var disc = function (o, pc) { return pc > 0 ? { old: fmt(o), pct: '−' + pc + '%' } : { old: '', pct: '' }; };
 
-  var endStr = t(C.saleEndsAt);
-  var end = endStr ? Date.parse(endStr) : NaN;
+  var endStr = t(C.saleEndsAt) || '2026-11-30T23:59:59+03:00';
+  var end = Date.parse(endStr);
   var hasEnd = !isNaN(end);
   var dateStr = '';
   if (hasEnd) {
-    try {
-      dateStr = new Date(end).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', timeZone: t(C.timeZone) || undefined });
-    } catch (e) {
-      dateStr = new Date(end).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });
-    }
+    try { dateStr = new Date(end).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', timeZone: t(C.timeZone) || 'Europe/Moscow' }); }
+    catch (e) { dateStr = new Date(end).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' }); }
   }
   var expired = function () { return hasEnd && Date.now() >= end; };
 
   var courseAccess = t(C.courseAccess) || '3 месяца';
-  var sunAccess = t(C.sunmakeupAccess) || (draft ? '[срок мастер-класса]' : '');
+  var sunAccess = t(C.sunmakeupAccess) || '3 месяца';
+  var bunAccess = t(C.bundleAccess) || '5 месяцев';
   var delivery = t(C.accessDelivery);
 
   function btn(url, label) {
@@ -76,252 +65,189 @@
     sun: btn(C.sunmakeupCheckoutUrl, 'Купить мастер-класс'),
     bundle: btn(C.bundleCheckoutUrl, 'Купить комплект')
   };
-  function applyBtn(el, b) {
-    el.setAttribute('href', b.href);
-    el.dataset.buy = '1';
-    if (b.dead) el.addEventListener('click', function (e) { e.preventDefault(); });
-    else { el.target = '_self'; }
-    el.dataset.show = b.show ? '1' : '';
-  }
+  var D = { course: disc(cOld, cPct), sun: disc(sOld, sPct), bundle: disc(bOld, bPct) };
+
+  var LESSONS = ['Повседневный макияж', 'Вечерний и праздничный макияж', 'Smoky eyes', 'Макияж-трансформер 5 в 1'];
+  var SUN_ITEMS = ['База, которая решает всё', 'Невесомое покрытие', 'Макияж «без макияжа»', 'SOS-освежение и гайд в подарок'];
+
+  var PRODUCTS = [
+    { id: 'course', kicker: '', title: 'Обучение макияжу', sub: 'От дневного образа до вечернего: стрелки, smoky eyes и макияж-трансформер',
+      meta: '4 урока · 11 разных макияжей · доступ на ' + courseAccess, img: 'bathroom', alt: 'Эльмира красит губы у зеркала', pos: '50% 20%',
+      items: LESSONS, price: fmt(cp), d: D.course, btn: BTN.course },
+    { id: 'sunmakeup', kicker: 'Мастер-класс', title: 'Стойкий макияж без эффекта маски', sub: 'Один образ с нуля и все мои секреты стойкости',
+      meta: 'Доступ на ' + sunAccess, img: 'evening', alt: 'Эльмира с карандашом для губ', pos: '45% 30%',
+      items: SUN_ITEMS, price: fmt(sp), d: D.sun, btn: BTN.sun }
+  ];
 
   var OFFERS = {
-    sun: {
-      key: 'sun', name: 'Мастер-класс «Стойкий макияж»',
-      forWho: 'Для тех, кто хочет освоить один образ с нуля и понять, как сделать макияж стойким.',
-      inside: 'Видеоурок и гайд по косметике',
-      access: sunAccess ? 'Доступ на ' + sunAccess + ' сразу после оплаты' : 'Доступ сразу после оплаты',
-      price: fmt(sp), old: sPct ? fmt(sOld) : '', pct: sPct ? '−' + sPct + '%' : '', btn: BTN.sun
-    },
-    course: {
-      key: 'course', name: 'Обучение макияжу',
-      forWho: 'Для тех, кто хочет уверенно краситься на каждый день, делать стрелки и smoky eyes.',
-      inside: 'Видеоуроки и гайд по косметике',
-      access: 'Доступ на ' + courseAccess + ' сразу после оплаты',
-      price: fmt(cp), old: cPct ? fmt(cOld) : '', pct: cPct ? '−' + cPct + '%' : '', btn: BTN.course
-    },
-    bundle: {
-      key: 'bundle', name: 'Комплект «Обучение + мастер-класс»', featured: true,
-      forWho: 'Разные образы из обучения и отдельный урок о том, как сохранить макияж свежим в течение дня.',
-      inside: 'Обучение, мастер-класс и оба гайда',
-      access: 'Доступ сразу после оплаты: обучение — ' + courseAccess + (sunAccess ? ', мастер-класс — ' + sunAccess : ''),
-      price: fmt(bp), old: save > 0 ? fmt(separate) : '', oldNote: save > 0 ? 'По отдельности в дни акции' : '',
-      badge: save > 0 ? 'Ещё −' + fmt(save) : '', btn: BTN.bundle
-    }
+    sun: { key: 'sun', name: 'Мастер-класс «Стойкий макияж»', price: fmt(sp), d: D.sun, btn: BTN.sun, save: sOld > sp ? 'Экономия ' + fmt(sOld - sp) : '' },
+    course: { key: 'course', name: 'Обучение макияжу', price: fmt(cp), d: D.course, btn: BTN.course, save: cOld > cp ? 'Экономия ' + fmt(cOld - cp) : '' },
+    bundle: { key: 'bundle', name: 'Обучение + мастер-класс', price: fmt(bp), d: D.bundle, btn: BTN.bundle, featured: true, save: bSave > 0 ? 'Экономия ' + fmt(bSave) : '' }
   };
 
-  // ---------- Хелперы DOM ----------
-  function el(tag, cls, text) {
-    var e = document.createElement(tag);
-    if (cls) e.className = cls;
-    if (text != null) e.textContent = text;
-    return e;
+  // ---------- Картинки (адреса можно переопределить в config.js → images) ----------
+  document.querySelectorAll('img[data-img]').forEach(function (im) {
+    var u = C.images && C.images[im.getAttribute('data-img')];
+    if (u) im.src = u;
+  });
+  function imgSrc(name) { return (C.images && C.images[name]) || 'assets/' + name + '.jpg'; }
+
+  // ---------- Кнопка покупки ----------
+  function buyLink(cls, b) {
+    var a = '<a class="btn ' + cls + '" data-buy href="' + esc(b.href) + '"' + (b.dead ? ' data-dead="1"' : '') + (b.show ? '' : ' hidden') + '>' + esc(b.label) + '</a>';
+    return a;
   }
+
+  // ---------- Блоки продуктов ----------
+  var prodHtml = PRODUCTS.map(function (p) {
+    return '<section id="' + p.id + '" class="prod"><div class="prod__in">' +
+      '<div class="prod__head"><div class="prod__title">' + (p.kicker ? '<span class="kicker">' + esc(p.kicker) + '</span>' : '') +
+      '<h2 class="h2">' + esc(p.title) + '</h2></div>' +
+      '<div class="prod__side"><p class="prod__sub">' + esc(p.sub) + '</p><span class="prod__meta">' + esc(p.meta) + '</span></div></div>' +
+      '<div class="prod__grid"><div class="prod__photo"><img src="' + esc(imgSrc(p.img)) + '" alt="' + esc(p.alt) + '" loading="lazy" style="object-position:' + p.pos + '"></div>' +
+      '<div class="prod__items">' + p.items.map(function (it, i) {
+        return '<div class="item"><span class="item__t">' + esc(it) + '</span><span class="item__n">' + pad(i + 1) + '</span></div>';
+      }).join('') + '</div></div>' +
+      '<div class="strip"><div class="strip__prices"><span class="price strip__price">' + p.price + '</span>' +
+      (p.d.old ? '<s class="strip__old">' + p.d.old + '</s><span class="pct">' + p.d.pct + '</span>' : '') + '</div>' +
+      buyLink('btn--white strip__btn', p.btn) +
+      '<span class="ended" data-ended hidden>Распродажа завершена</span></div>' +
+      '</div></section>';
+  }).join('');
+  $('products').innerHTML = prodHtml;
 
   // ---------- Карточки тарифов ----------
   var mqWide = window.matchMedia('(min-width: 1000px)');
-  function card(o, full) {
-    var a = el('article', 'card' + (o.featured ? ' card--feat' : ''));
-    if (full && o.key === 'bundle') a.id = 'offer-bundle';
-    if (full) {
-      var im = el('div', 'card__img'), tiles = {
-        sun: [['lipstick', '60% 30%']],
-        course: [['teaching', '40% 25%']],
-        bundle: [['cosmetics', '50% 55%'], ['teaching', '40% 25%']]
-      }[o.key];
-      tiles.forEach(function (tl) { var i = el('i'); i.style.backgroundImage = 'var(--img-' + tl[0] + ')'; i.style.backgroundPosition = tl[1]; im.appendChild(i); });
-      a.appendChild(im);
-    }
-    if (o.featured) { if (o.badge) a.appendChild(el('span', 'card__badge', o.badge)); }
-    else if (o.pct) a.appendChild(el('span', 'card__pct', o.pct));
-    a.appendChild(el('h3', 'card__name', o.name));
-    if (full) {
-      a.appendChild(el('p', 'card__for m-hide', o.forWho));
-      var ins = el('div', 'card__inside');
-      ins.appendChild(el('span', null, o.inside));
-      ins.appendChild(el('span', null, o.access));
-      a.appendChild(ins);
-    }
-    var foot = el('div', 'card__foot');
-    var prices = el('div', 'card__prices');
-    var row = el('div', 'card__pricerow');
-    row.appendChild(el('span', 'card__price', o.price));
-    if (o.old) row.appendChild(el('s', 'card__old', o.old));
-    prices.appendChild(row);
-    if (o.oldNote) prices.appendChild(el('span', 'card__oldnote', o.oldNote));
-    foot.appendChild(prices);
-    var b = el('a', 'card__btn');
-    if (o.featured) { b.appendChild(el('span', 'star')); b.appendChild(el('span', null, o.btn.label)); b.appendChild(el('span', 'star')); }
-    else b.textContent = o.btn.label;
-    applyBtn(b, o.btn);
-    foot.appendChild(b);
-    var ended = el('span', 'card__ended', 'Распродажа завершена');
-    ended.setAttribute('data-ended', '');
-    foot.appendChild(ended);
-    a.appendChild(foot);
-    return a;
+  function cardHtml(o) {
+    var inner = '<article class="card' + (o.featured ? ' card--feat' : '') + '">' +
+      '<div class="card__badges">' + (o.d.pct ? '<span class="card__pct">' + o.d.pct + '</span>' : '') +
+      (o.featured ? '<span class="card__hot">Самый выгодный</span>' : '') + '</div>' +
+      '<h3 class="card__name">' + esc(o.name) + '</h3>' +
+      '<div class="card__foot"><div class="card__prices"><span class="card__price">' + o.price + '</span>' +
+      (o.d.old ? '<s class="card__old">' + o.d.old + '</s>' : '') + '</div>' +
+      buyLink('card__btn', o.btn) +
+      (o.save ? '<span class="card__save">' + o.save + '</span>' : '') +
+      '<span class="card__ended" data-ended hidden>Распродажа завершена</span></div></article>';
+    if (o.featured) return '<div class="card-wrap" id="offer-bundle"><div class="card-wrap__shadow" aria-hidden="true"></div>' + inner + '</div>';
+    return inner;
   }
   var lastWide = null;
   function renderCards() {
     var wide = mqWide.matches;
     if (wide === lastWide) return;
     lastWide = wide;
-    // Порядок в DOM = визуальный порядок
-    var order = wide ? ['sun', 'course', 'bundle'] : ['bundle', 'course', 'sun'];
-    [['offersFull', true], ['offersCompact', false]].forEach(function (p) {
-      var box = $(p[0]);
-      box.textContent = '';
-      order.forEach(function (k) { box.appendChild(card(OFFERS[k], p[1])); });
-      typografy(box);
-    });
+    var order = wide ? ['sun', 'course', 'bundle'] : ['bundle', 'course', 'sun']; // порядок в DOM = визуальный
+    var box = $('cards');
+    box.innerHTML = order.map(function (k) { return cardHtml(OFFERS[k]); }).join('');
+    bindBuy(box);
+    typografy(box);
     syncState();
   }
+  function bindBuy(root) {
+    root.querySelectorAll('[data-dead]').forEach(function (a) { a.addEventListener('click', function (e) { e.preventDefault(); }); });
+  }
+  bindBuy($('products'));
+
+  // ---------- Шаги ----------
+  var STEPS = [
+    ['Пришлю доступ на почту' + (delivery ? ' ' + delivery : ''), 'envelope', 'Письмо с доступом', 'contain'],
+    ['Смотрите уроки в своём темпе', 'tablet', 'Урок на планшете', 'contain'],
+    ['Повторяйте за мной у зеркала', 'elmira-mirror', 'Эльмира у зеркала', 'cover']
+  ];
+  $('steps').innerHTML = STEPS.map(function (s, i) {
+    return '<div class="step"><div class="step__img"><img src="' + esc(imgSrc(s[1])) + '" alt="' + esc(s[2]) + '" loading="lazy" style="object-fit:' + s[3] + '"></div>' +
+      '<div class="step__row"><span class="step__n">' + pad(i + 1) + '</span><span class="step__t">' + esc(s[0]) + '</span></div></div>';
+  }).join('');
+
+  // ---------- FAQ ----------
+  var FAQ = [
+    ['У меня нет навыков визажиста. У меня получится?', 'Получится. Я показываю каждый шаг, поэтому вы спокойно повторите за мной в своём темпе.'],
+    ['Это прямой эфир? Вдруг я не успею?', 'Нет, уроки уже записаны. Смотрите, когда удобно, ставьте на паузу и возвращайтесь к нужному моменту.'],
+    ['Чем выгоден комплект?', bPct > 0
+      ? 'Комплект стоит ' + fmt(bp) + ' вместо ' + fmt(bOld) + ': скидка ' + bPct + '%, экономия ' + fmt(bSave) + '. Доступ на ' + bunAccess + '.'
+      : 'Комплект стоит ' + fmt(bp) + '. Доступ на ' + bunAccess + '.'],
+    ['Как долго доступны материалы?', 'Обучение и мастер-класс по отдельности — ' + courseAccess + ', комплект — ' + bunAccess + '.'],
+    ['Как оплатить? Есть рассрочка?', t(C.faqPayment) || (draft ? '[Способы оплаты и условия рассрочки]' : '')],
+    ['Можно ли вернуть деньги?', t(C.faqRefund) || (draft ? '[Условия возврата по договору оферты]' : '')]
+  ].filter(function (f) { return f[1]; });
+  var faqBox = $('faq'), faqSetters = [];
+  FAQ.forEach(function (f, i) {
+    var item = document.createElement('div'); item.className = 'faq__item';
+    var q = document.createElement('button'); q.type = 'button'; q.className = 'faq__q'; q.id = 'faq-q' + i;
+    q.setAttribute('aria-controls', 'faq-a' + i);
+    var qs = document.createElement('span'); qs.textContent = f[0];
+    var sign = document.createElement('span'); sign.className = 'faq__sign';
+    q.appendChild(qs); q.appendChild(sign);
+    var a = document.createElement('p'); a.className = 'faq__a'; a.id = 'faq-a' + i; a.textContent = f[1];
+    a.setAttribute('role', 'region'); a.setAttribute('aria-labelledby', q.id);
+    function set(open) { q.setAttribute('aria-expanded', open ? 'true' : 'false'); sign.textContent = open ? '−' : '+'; a.hidden = !open; }
+    set(i === 0);
+    q.addEventListener('click', function () {
+      var willOpen = q.getAttribute('aria-expanded') !== 'true';
+      faqSetters.forEach(function (s) { s(false); });
+      set(willOpen);
+    });
+    faqSetters.push(set);
+    item.appendChild(q); item.appendChild(a); faqBox.appendChild(item);
+  });
+
+  // ---------- Подвал ----------
+  var seller = t(C.sellerDetails) || (draft ? '[ИП, ИНН продавца]' : '');
+  if (seller) { $('footSeller').hidden = false; $('footSeller').textContent = seller; }
+  var privHref = t(C.privacyPolicyUrl) || (draft ? '#' : '');
+  var offerHref = t(C.offerUrl) || (draft ? '#' : '');
+  if (privHref) { $('footPrivacy').hidden = false; $('footPrivacy').href = privHref; }
+  if (offerHref) { $('footOffer').hidden = false; $('footOffer').href = offerHref; }
+  var support = t(C.supportContact) || (draft ? '[контакт поддержки]' : '');
+  if (support) { var fs = $('footSupport'); fs.hidden = false; fs.textContent = 'Помощь с оплатой: ' + support; fs.href = t(C.supportUrl) || '#'; }
+
+  // ---------- Бегущая строка ----------
+  var phrases = [['Black Friday', '#FFFFFF'], ['Обучение макияжу', '#FFFFFF'], [dateStr ? 'Только до ' + dateStr : 'Только сейчас', '#BDBDBD']];
+  var mq = $('marquee');
+  for (var r = 0; r < 4; r++) phrases.forEach(function (p) {
+    var s1 = document.createElement('span'); s1.className = 'marquee__t'; s1.style.color = p[1]; s1.textContent = typo(p[0]);
+    var s2 = document.createElement('span'); s2.className = 'marquee__sep';
+    mq.appendChild(s1); mq.appendChild(s2);
+  });
 
   // ---------- Состояние акции ----------
+  var timer = $('barTimer'), timerEls = [];
+  ['д', 'ч', 'м', 'с'].forEach(function (l) {
+    var u = document.createElement('span'); u.className = 'bar__unit';
+    var v = document.createElement('b'); v.textContent = '0';
+    var s = document.createElement('i'); s.textContent = l;
+    u.appendChild(v); u.appendChild(s); timer.appendChild(u); timerEls.push(v);
+  });
+  var mqNarrow = window.matchMedia('(max-width: 759px)');
   function syncState() {
     var ex = expired();
     document.documentElement.classList.toggle('is-ended', ex);
-    document.querySelectorAll('[data-buy]').forEach(function (a) { a.hidden = ex || !a.dataset.show; });
     document.querySelectorAll('[data-ended]').forEach(function (n) { n.hidden = !ex; });
     $('heroEnded').hidden = !ex;
-    $('sticker').hidden = ex || !maxPct;
     $('barEnded').hidden = !ex;
     $('barTimer').hidden = ex || !hasEnd;
-    document.querySelector('.bar__btn').hidden = ex;
-    var narrow = window.matchMedia('(max-width: 759px)').matches;
     var badge = $('barBadge');
-    badge.hidden = ex || !maxPct;
-    badge.textContent = maxPct ? (narrow ? 'до ' + maxPct : 'Скидки до ' + maxPct) : '';
-    $('barNote').textContent = !ex && dateStr ? typo('Цены на обучение снижены до ' + dateStr + ' включительно') : '';
-    var hd = $('heroDate');
-    hd.hidden = ex || !dateStr;
-    hd.textContent = dateStr ? typo('Цены Black Friday действуют до ' + dateStr + ' включительно') : '';
+    badge.hidden = ex || !bPct;
+    badge.textContent = bPct ? (mqNarrow.matches ? '−' + bPct + '%' : 'Комплект −' + bPct + '%') : '';
+    $('barNote').textContent = !ex && dateStr ? typo('Цены снижены до ' + dateStr + ' включительно') : '';
+    $('offersNote').textContent = typo(ex ? 'Распродажа завершена' : (dateStr ? 'Цены Black Friday действуют до ' + dateStr + ' включительно' : 'Цены Black Friday'));
+    $('finalLine').textContent = typo(ex ? 'Распродажа завершена' : (bPct > 0 ? 'Комплект −' + bPct + '% и экономия ' + fmt(bSave) : 'Скидки на обучение') + (dateStr ? ' — до ' + dateStr : ''));
   }
-
-  // ---------- Таймер ----------
-  var timer = $('barTimer'), timerEls = [];
-  ['д', 'ч', 'м', 'с'].forEach(function (l) {
-    var u = el('span', 'bar__unit'), v = el('b', null, '0'), s = el('i', null, l);
-    u.appendChild(v); u.appendChild(s); timer.appendChild(u); timerEls.push(v);
-  });
   function tick() {
     if (!hasEnd) return;
     var diff = Math.max(0, end - Date.now());
     var s = Math.floor(diff / 1000);
     var vals = [String(Math.floor(s / 86400)), pad(Math.floor(s % 86400 / 3600)), pad(Math.floor(s % 3600 / 60)), pad(s % 60)];
     vals.forEach(function (v, i) { if (timerEls[i].textContent !== v) timerEls[i].textContent = v; });
-    if (diff <= 0) { syncState(); }
+    if (diff <= 0) syncState();
   }
-
-  // ---------- Статичные секции ----------
-  document.querySelectorAll('.js-maxpct').forEach(function (n) { n.textContent = maxPct; });
-  $('heroBlackPct').hidden = !maxPct;
-
-  // Обучение
-  var lessons = ['Повседневный макияж', 'Вечерний и праздничный макияж', 'Smoky eyes', 'Макияж-трансформер 5 в 1'];
-  lessons.forEach(function (title, i) {
-    var li = el('li');
-    li.appendChild(el('span', 'n', pad(i + 1)));
-    li.appendChild(el('span', 't', title));
-    $('lessons').appendChild(li);
-  });
-  $('courseSummary').textContent = 'Доступ на ' + courseAccess + ' после покупки';
-  $('coursePrice').textContent = fmt(cp);
-  $('courseBundlePrice').textContent = fmt(bp);
-  if (cPct) {
-    var cd = $('courseDisc');
-    cd.hidden = false;
-    cd.querySelector('s').textContent = fmt(cOld);
-    cd.querySelector('.pct').textContent = '−' + cPct + '%';
-  }
-  applyBtn($('courseBtn'), BTN.course);
-
-  // Мастер-класс
-  ['Как подготовить кожу и нанести уход', 'Как использовать SPF под макияжем', 'Как нанести тон, чтобы он не скатывался', 'Как сделать макияж стойким', 'Как адаптировать праздничный образ для будней'].forEach(function (text, i) {
-    var li = el('li');
-    li.appendChild(el('span', 'n', pad(i + 1)));
-    li.appendChild(el('span', null, text));
-    $('topics').appendChild(li);
-  });
-  if (sunAccess) { $('sunSummary').hidden = false; $('sunSummary').textContent = 'Доступ на ' + sunAccess + ' после покупки'; }
-  $('sunPrice').textContent = fmt(sp);
-  if (sPct) {
-    var sd = $('sunDisc');
-    sd.hidden = false;
-    sd.querySelector('s').textContent = fmt(sOld);
-    sd.querySelector('.pct').textContent = '−' + sPct + '%';
-  }
-  applyBtn($('sunBtn'), BTN.sun);
-
-  // Гайд
-  if (t(C.guideImage)) { var g = $('guideImg'); g.src = t(C.guideImage); g.hidden = false; }
-
-  // Как проходит
-  $('howText').textContent = 'После оплаты вы получите доступ к выбранным материалам' + (delivery ? ' ' + delivery : '') +
-    '. Уроки в записи, поэтому можно смотреть в своём темпе, ставить видео на паузу и повторять приёмы перед зеркалом.';
-
-  // FAQ
-  var FAQ = [
-    ['Я почти не крашусь. С чего начать?', 'Если хотите научиться делать один макияж и разобраться в последовательности шагов, начните с мастер-класса. Обучение подойдёт, если хотите попробовать разные техники и образы.'],
-    ['Как сэкономить, если я хочу оба обучения?', save > 0
-      ? 'Вместе обучение и мастер-класс стоят ' + fmt(bp) + '. Это на ' + fmt(save) + ' дешевле, чем купить их по отдельности в дни акции.'
-      : 'Вместе обучение и мастер-класс стоят ' + fmt(bp) + '.'],
-    ['Как долго доступны материалы?', 'Обучение доступно ' + courseAccess + '.' + (sunAccess ? ' Мастер-класс — ' + sunAccess + '.' : '')]
-  ];
-  var faqBox = $('faq');
-  FAQ.forEach(function (f, i) {
-    var item = el('div', 'faq__item');
-    var q = el('button', 'faq__q');
-    q.type = 'button';
-    q.id = 'faq-q' + i;
-    q.setAttribute('aria-controls', 'faq-a' + i);
-    q.appendChild(el('span', null, f[0]));
-    var sign = el('span', 'faq__sign');
-    q.appendChild(sign);
-    var a = el('p', 'faq__a', f[1]);
-    a.id = 'faq-a' + i;
-    a.setAttribute('role', 'region');
-    a.setAttribute('aria-labelledby', q.id);
-    function set(open) {
-      q.setAttribute('aria-expanded', open ? 'true' : 'false');
-      sign.textContent = open ? '−' : '+';
-      a.hidden = !open;
-    }
-    set(i === 0);
-    q.addEventListener('click', function () { set(q.getAttribute('aria-expanded') !== 'true'); });
-    item.appendChild(q); item.appendChild(a);
-    faqBox.appendChild(item);
-  });
-
-  // Подвал
-  var seller = t(C.sellerDetails) || (draft ? '[Реквизиты продавца: ФИО / ИП, ИНН, ОГРНИП]' : '');
-  if (seller) { $('footSeller').hidden = false; $('footSellerText').textContent = seller; }
-  var offerHref = t(C.offerUrl) || (draft ? '#' : '');
-  var privHref = t(C.privacyPolicyUrl) || (draft ? '#' : '');
-  if (offerHref) { $('footOffer').hidden = false; $('footOffer').href = offerHref; }
-  if (privHref) { $('footPrivacy').hidden = false; $('footPrivacy').href = privHref; }
-  var support = t(C.supportContact) || (draft ? '[контакт поддержки]' : '');
-  if (support) { $('footSupport').hidden = false; $('footSupportLink').textContent = support; $('footSupportLink').href = t(C.supportUrl) || '#'; }
-
-  // Бегущая строка
-  var phrases = [
-    ['Black Friday', '#FFFFFF'],
-    [maxPct ? 'Скидки до ' + maxPct : 'Скидки на обучение', '#FFFFFF'],
-    [dateStr ? 'Только до ' + dateStr : 'Только сейчас', '#BDBDBD']
-  ];
-  if (save > 0) phrases.push(['Обучение + мастер-класс за ' + fmt(bp), '#FFFFFF']);
-  var mq = $('marquee');
-  for (var r = 0; r < 4; r++) phrases.forEach(function (p) {
-    var s1 = el('span', 'marquee__t', typo(p[0])); s1.style.color = p[1];
-    mq.appendChild(s1);
-    mq.appendChild(el('span', 'marquee__sep star'));
-  });
 
   // ---------- Прокрутка ----------
   function scrollToId(id) {
     var node = $(id);
     if (!node) return;
     var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    var off = window.innerWidth < 760 ? 60 : 64;
+    var off = window.innerWidth < 760 ? 52 : 56;
     var sc = document.scrollingElement || document.documentElement;
     sc.scrollTo({ top: node.getBoundingClientRect().top + sc.scrollTop - off, behavior: reduce ? 'auto' : 'smooth' });
   }
@@ -333,12 +259,12 @@
   });
 
   // ---------- Запуск ----------
-  typografy(document.getElementById('bf-root') || document.body);
+  syncState();
+  typografy($('bf-root') || document.body);
   renderCards();
   syncState();
   tick();
   mqWide.addEventListener ? mqWide.addEventListener('change', renderCards) : mqWide.addListener(renderCards);
-  var mqNarrow = window.matchMedia('(max-width: 759px)');
   mqNarrow.addEventListener ? mqNarrow.addEventListener('change', syncState) : mqNarrow.addListener(syncState);
   setInterval(tick, 1000);
   document.addEventListener('visibilitychange', tick);

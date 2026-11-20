@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Black Friday — уроки макияжа Эльмиры Перваковой</title>
-<meta name="description" content="Обучение макияжу, мастер-класс «Стойкий макияж» и комплект из обоих по цене Black Friday.">
+<title>Black Friday — обучение макияжу Эльмиры Перваковой</title>
+<meta name="description" content="Обучение макияжу, мастер-класс «Стойкий макияж» и комплект по цене Black Friday до 30 ноября.">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Black Friday — уроки макияжа Эльмиры Перваковой">
-<meta property="og:description" content="Обучение макияжу, мастер-класс «Стойкий макияж» и комплект из обоих по цене Black Friday.">
-<meta property="og:image" content="assets/teaching.jpg">
+<meta property="og:title" content="Black Friday — обучение макияжу Эльмиры Перваковой">
+<meta property="og:description" content="Обучение макияжу, мастер-класс «Стойкий макияж» и комплект по цене Black Friday до 30 ноября.">
+<meta property="og:image" content="assets/bride.jpg">
 <meta name="theme-color" content="#000000">
 <meta name="robots" content="noindex, nofollow">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -27,7 +27,7 @@
     <span class="bar__note" id="barNote"></span>
     <div class="bar__timer" id="barTimer" role="timer" aria-label="До конца распродажи" hidden></div>
     <span class="bar__ended" id="barEnded" hidden>Распродажа завершена</span>
-    <button type="button" class="bar__btn" data-go="offers"><span class="hide-narrow">Выбрать обучение</span><span class="show-narrow">Выбрать</span></button>
+    <button type="button" class="bar__btn" data-go="offers" data-sale><span class="hide-narrow">Выбрать обучение</span><span class="show-narrow">Выбрать</span></button>
   </div>
 </div>
 <div class="bar-spacer" aria-hidden="true"></div>
@@ -37,38 +37,23 @@
   <section class="hero">
     <div class="hero__top">
       <span>Эльмира Первакова <span class="muted">/ Black Friday</span></span>
-      <span>[@elmira_sensei]</span>
+      <a href="https://instagram.com/elmira_sensei" target="_blank" rel="noopener">@elmira_sensei</a>
     </div>
-
-    <div class="hero__photo">
-      <div class="hero__grid">
-        <div class="hero__img" role="img" aria-label="Косметика на белой простыне" style="background-image:linear-gradient(180deg,rgba(0,0,0,.05) 30%,rgba(0,0,0,.42) 100%),var(--img-cosmetics);background-position:50% 50%"></div>
-        <div class="hero__img" role="img" aria-label="Эльмира Первакова за туалетным столиком" style="background-image:linear-gradient(180deg,rgba(0,0,0,.05) 30%,rgba(0,0,0,.42) 100%),var(--img-teaching);background-position:39% 30%"></div>
+    <div class="hero__grid">
+      <div class="hero__left">
+        <div class="hero__bf" aria-hidden="true"><div><div>Black</div><div class="accent">Friday</div></div></div>
+        <div class="hero__copy">
+          <h1 class="h1">Научу краситься для себя: от будней до вечера</h1>
+          <button type="button" class="btn btn--maroon hero__btn" data-go="offers" data-sale>Выбрать обучение</button>
+          <div class="proof">
+            <span class="proof__n">2 500+</span>
+            <span class="proof__t">учениц уже выбрали мои продукты, чтобы научиться краситься</span>
+          </div>
+        </div>
       </div>
-      <div class="hero__bf" aria-hidden="true">
-        <div>Black</div>
-        <div class="hero__bf-r">Friday</div>
-      </div>
-      <div class="sticker" id="sticker" hidden>
-        <span class="sticker__l">скидки до</span>
-        <span class="sticker__n js-maxpct"></span>
-      </div>
-      <div class="hero__ended" id="heroEnded" hidden>Распродажа завершена</div>
-    </div>
-
-    <div class="hero__black" id="heroBlack">
-      <span class="hero__black-t">Black<br>Friday</span>
-      <span class="hero__black-p" id="heroBlackPct" hidden><span class="hero__black-pl">скидки до</span><span class="hero__black-pn js-maxpct"></span></span>
-    </div>
-
-    <div class="hero__main">
-      <div class="hero__text">
-        <h1 class="h1">Макияж для себя <span class="accent">с Эльмирой Перваковой</span></h1>
-        <p class="lead">Научитесь собирать образы для будней и вечера и делать макияж, который держится в течение дня. Эльмира показывает каждый приём по шагам, чтобы его было легко повторить дома.</p>
-      </div>
-      <div class="hero__cta">
-        <span class="hero__date" id="heroDate" hidden></span>
-        <button type="button" class="btn-grad" data-go="offers"><span class="star" aria-hidden="true"></span><span>Выбрать обучение</span><span class="star" aria-hidden="true"></span></button>
+      <div class="hero__photo">
+        <img src="assets/bride.jpg" data-img="bride" alt="Эльмира Первакова в свадебном образе" fetchpriority="high">
+        <div class="hero__ended" id="heroEnded" hidden>Распродажа завершена</div>
       </div>
     </div>
   </section>
@@ -76,148 +61,68 @@
   <!-- Бегущая строка -->
   <div class="marquee" aria-hidden="true"><div class="marquee__track" id="marquee"></div></div>
 
-  <!-- 02 Выберите обучение -->
-  <section id="offers" class="offers">
-    <div class="wrap wrap--gap">
-      <div class="head">
-        <span class="eyebrow">Цены Black Friday</span>
-        <h2 class="h2">Выберите <span class="accent">своё обучение</span></h2>
-      </div>
-      <div class="cards" id="offersFull"></div>
-    </div>
-  </section>
-
-  <!-- 03 Обучение -->
-  <section id="course" class="course">
-    <div class="wrap wrap--gap-lg">
-      <div class="row row--end">
-        <div class="head" style="flex:1 1 560px">
-          <span class="eyebrow">Обучение макияжу</span>
-          <h2 class="h2">От дневного образа <span class="accent">до вечернего</span></h2>
-        </div>
-        <p class="intro m-hide" style="flex:1 1 400px">Вы научитесь делать дневной макияж и менять его под повод. Разберётесь, как рисовать стрелки и растушёвывать тени для smoky eyes. На уроке с макияжем-трансформером я покажу, как добавить выразительности уже готовому образу.</p>
-      </div>
-      <div class="course__body">
-        <div class="course__photo m-only" role="img" aria-label="Эльмира Первакова за туалетным столиком"></div>
-        <div class="course__lessons">
-          <span class="kicker">Что будем делать на уроках</span>
-          <ol class="lessons" id="lessons"></ol>
-        </div>
-        <div class="course__buy">
-          <span class="course__access" id="courseSummary"></span>
-          <div class="price-block">
-            <div class="price-old" id="courseDisc" hidden>
-              <s class="price-old__s"></s>
-              <span class="pct pct--sm"></span>
-            </div>
-            <span class="price-xl" id="coursePrice"></span>
-          </div>
-          <a class="btn-grad btn-buy" id="courseBtn" hidden><span class="star" aria-hidden="true"></span><span>Купить обучение</span><span class="star" aria-hidden="true"></span></a>
-          <span class="ended-note" data-ended hidden>Распродажа завершена</span>
-          <a class="course__bundle" href="#offer-bundle" data-go="offer-bundle">Обучение и мастер-класс вместе за <span id="courseBundlePrice"></span></a>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- 04 Мастер-класс -->
-  <section id="sunmakeup" class="sun">
-    <div class="sun__in">
-      <div class="sun__photo" role="img" aria-label="Эльмира наносит помаду"></div>
-      <div class="sun__body">
-        <div class="head">
-          <span class="sun__eyebrow">Мастер-класс «Стойкий макияж»</span>
-          <h2 class="h2 h2--sun">Стойкий макияж шаг за шагом</h2>
-          <p class="sun__lead m-hide">Я придумала этот образ для жарких дней. На мастер-классе покажу, в каком порядке наносить уход, SPF и тон, чтобы средства хорошо ложились друг на друга. Вы сможете повторить макияж дома и сделать его спокойнее для будней или ярче для вечера.</p>
-        </div>
-        <div class="sun__topics-wrap">
-          <span class="kicker kicker--light">Что разберём на мастер-классе</span>
-          <ol class="topics" id="topics"></ol>
-        </div>
-        <div class="sun__buy">
-          <div class="sun__price">
-            <span class="sun__access" id="sunSummary" hidden></span>
-            <div class="price-old" id="sunDisc" hidden>
-              <s class="price-old__s price-old__s--light"></s>
-              <span class="pct pct--sm"></span>
-            </div>
-            <span class="price-xl" id="sunPrice"></span>
-          </div>
-          <div class="sun__btn">
-            <a class="btn-white" id="sunBtn" hidden><span class="star" aria-hidden="true"></span><span>Купить мастер-класс</span><span class="star" aria-hidden="true"></span></a>
-            <span class="ended-note" data-ended hidden>Распродажа завершена</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
+  <!-- 03–04 Продукты -->
+  <div id="products"></div>
 
   <!-- 05 Косметика -->
-  <section>
-    <div class="wrap wrap--gap">
-      <div class="row row--end">
-        <h2 class="h2" style="flex:1 1 480px"><span class="line">Нужна ли</span><span class="line accent" style="padding-left:14%">новая косметика?</span></h2>
-        <p class="intro" style="flex:1 1 400px">Для первого урока возьмите то, чем уже пользуетесь. По гайду можно проверить, какие средства подойдут и чем заменить недостающие.</p>
+  <section class="collage">
+    <div class="collage__in">
+      <div class="collage__a"><img src="assets/vanity.jpg" data-img="vanity" alt="Косметика на туалетном столике" loading="lazy"></div>
+      <div class="collage__t">
+        <p class="collage__h">Не нужно скупать <span class="accent">новую косметику</span></p>
+        <p class="collage__s">Начните с того, что уже есть в косметичке</p>
       </div>
-      <img class="guide" id="guideImg" alt="Фрагмент гайда по косметике" hidden>
+      <div class="collage__b"><img src="assets/dior.jpg" data-img="dior" alt="Помада крупным планом" loading="lazy"></div>
     </div>
   </section>
 
-  <!-- 06 Об Эльмире -->
-  <section class="about">
-    <div class="wrap about__in">
-      <div class="about__photo" role="img" aria-label="Эльмира Первакова, портрет крупным планом"></div>
-      <div class="about__text">
-        <h2 class="h2"><span class="line">Эльмира</span><span class="line accent" style="padding-left:18%">Первакова</span></h2>
-        <p class="about__p">Привет, я Эльмира. На уроках я объясняю, зачем нужен каждый шаг и как меняется результат, если взять меньше тона, мягче растушевать тени или иначе поставить акцент. Так вы сможете подстроить макияж под себя.</p>
+  <!-- 07 Выберите обучение -->
+  <section id="offers" class="offers">
+    <div class="offers__in">
+      <div class="offers__head">
+        <h2 class="h2 h2--xl">Выберите <span class="accent">обучение</span></h2>
+        <span class="offers__note" id="offersNote"></span>
       </div>
+      <div class="cards" id="cards"></div>
     </div>
   </section>
 
-  <!-- 07 Как проходит -->
-  <section class="how">
-    <div class="wrap how__in">
-      <h2 class="h2 h2--md" style="flex:1 1 380px">Как проходит <span class="accent">обучение</span></h2>
-      <p class="how__p" id="howText"></p>
+  <!-- 08 Что дальше -->
+  <section class="steps">
+    <div class="steps__in">
+      <h2 class="h2 h2--xl"><span class="line">Вы оплатили —</span><span class="line steps__h2b">что дальше?</span></h2>
+      <div class="steps__grid" id="steps"></div>
     </div>
   </section>
 
-  <!-- 08 Вопросы -->
-  <section>
-    <div class="wrap faq__in">
-      <h2 class="h2 h2--md" style="flex:1 1 320px">Частые <span class="accent">вопросы</span></h2>
+  <!-- 09 Вопросы -->
+  <section class="faqs">
+    <div class="faqs__in">
+      <h2 class="h2 h2--lg faqs__h">Ответы на вопросы</h2>
       <div class="faq" id="faq"></div>
     </div>
   </section>
 
-  <!-- 09 Финальный выбор -->
+  <!-- 10 Финальный экран -->
   <section class="final">
-    <div class="wrap wrap--gap">
-      <h2 class="h2"><span class="line">Успейте</span><span class="line accent" style="padding-left:14%">по цене Black Friday</span></h2>
-      <div class="cards" id="offersCompact"></div>
+    <img class="final__bg" src="assets/bg-flowers.jpg" data-img="bg-flowers" alt="" aria-hidden="true" loading="lazy">
+    <div class="final__shade" aria-hidden="true"></div>
+    <div class="final__in">
+      <h2 class="h2 h2--xl final__h">Научитесь краситься для себя по цене Black Friday</h2>
+      <p class="final__line" id="finalLine"></p>
+      <button type="button" class="btn btn--white final__btn" data-go="offers" data-sale>Выбрать обучение</button>
     </div>
   </section>
 </main>
 
 <footer class="footer">
   <div class="footer__in">
-    <div class="footer__row">
-      <div class="footer__col footer__col--seller" id="footSeller" hidden>
-        <span class="muted">Продавец</span>
-        <span class="pre" id="footSellerText"></span>
-      </div>
-      <div class="footer__col" id="footDocs">
-        <a id="footOffer" target="_blank" rel="noopener" hidden>Публичная оферта</a>
-        <a id="footPrivacy" target="_blank" rel="noopener" hidden>Политика обработки персональных данных</a>
-      </div>
-      <div class="footer__col" id="footSupport" hidden>
-        <span class="muted">Помощь с оплатой и доступом</span>
-        <a id="footSupportLink" target="_blank" rel="noopener"></a>
-      </div>
-    </div>
-    <div class="footer__big" aria-hidden="true">Elmira Sensei</div>
-    <span class="footer__copy">© 2026 Эльмира Первакова</span>
+    <span class="pre" id="footSeller" hidden></span>
+    <a id="footPrivacy" target="_blank" rel="noopener" hidden>Политика обработки персональных данных</a>
+    <a id="footOffer" target="_blank" rel="noopener" hidden>Договор оферты</a>
+    <a id="footSupport" target="_blank" rel="noopener" hidden></a>
   </div>
+  <div class="footer__big" aria-hidden="true">Elmira Sensei</div>
 </footer>
 
 <script src="config.js"></script>
