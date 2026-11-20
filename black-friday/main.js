@@ -72,7 +72,7 @@
     return { show: has || draft, label: label, href: has ? t(url) : '#', dead: !has };
   }
   var BTN = {
-    course: btn(C.courseCheckoutUrl, 'Купить курс'),
+    course: btn(C.courseCheckoutUrl, 'Купить обучение'),
     sun: btn(C.sunmakeupCheckoutUrl, 'Купить мастер-класс'),
     bundle: btn(C.bundleCheckoutUrl, 'Купить комплект')
   };
@@ -93,17 +93,17 @@
       price: fmt(sp), old: sPct ? fmt(sOld) : '', pct: sPct ? '−' + sPct + '%' : '', btn: BTN.sun
     },
     course: {
-      key: 'course', name: 'Курс «Обучение макияжу»',
+      key: 'course', name: 'Обучение макияжу',
       forWho: 'Для тех, кто хочет уверенно краситься на каждый день, делать стрелки и smoky eyes.',
       inside: 'Видеоуроки и гайд по косметике',
       access: 'Доступ на ' + courseAccess + ' сразу после оплаты',
       price: fmt(cp), old: cPct ? fmt(cOld) : '', pct: cPct ? '−' + cPct + '%' : '', btn: BTN.course
     },
     bundle: {
-      key: 'bundle', name: 'Комплект «Курс + мастер-класс»', featured: true,
-      forWho: 'Разные образы из курса и отдельный урок о том, как сохранить макияж свежим в течение дня.',
-      inside: 'Курс, мастер-класс и оба гайда',
-      access: 'Доступ сразу после оплаты: курс — ' + courseAccess + (sunAccess ? ', мастер-класс — ' + sunAccess : ''),
+      key: 'bundle', name: 'Комплект «Обучение + мастер-класс»', featured: true,
+      forWho: 'Разные образы из обучения и отдельный урок о том, как сохранить макияж свежим в течение дня.',
+      inside: 'Обучение, мастер-класс и оба гайда',
+      access: 'Доступ сразу после оплаты: обучение — ' + courseAccess + (sunAccess ? ', мастер-класс — ' + sunAccess : ''),
       price: fmt(bp), old: save > 0 ? fmt(separate) : '', oldNote: save > 0 ? 'По отдельности в дни акции' : '',
       badge: save > 0 ? 'Ещё −' + fmt(save) : '', btn: BTN.bundle
     }
@@ -216,7 +216,7 @@
   document.querySelectorAll('.js-maxpct').forEach(function (n) { n.textContent = maxPct; });
   $('heroBlackPct').hidden = !maxPct;
 
-  // Курс
+  // Обучение
   var lessons = ['Повседневный макияж', 'Вечерний и праздничный макияж', 'Smoky eyes', 'Макияж-трансформер 5 в 1'];
   lessons.forEach(function (title, i) {
     var li = el('li');
@@ -261,11 +261,11 @@
 
   // FAQ
   var FAQ = [
-    ['Я почти не крашусь. С чего начать?', 'Если хотите научиться делать один макияж и разобраться в последовательности шагов, начните с мастер-класса. Курс подойдёт, если хотите попробовать разные техники и образы.'],
+    ['Я почти не крашусь. С чего начать?', 'Если хотите научиться делать один макияж и разобраться в последовательности шагов, начните с мастер-класса. Обучение подойдёт, если хотите попробовать разные техники и образы.'],
     ['Как сэкономить, если я хочу оба обучения?', save > 0
-      ? 'Вместе курс и мастер-класс стоят ' + fmt(bp) + '. Это на ' + fmt(save) + ' дешевле, чем купить их по отдельности в дни акции.'
-      : 'Вместе курс и мастер-класс стоят ' + fmt(bp) + '.'],
-    ['Как долго доступны материалы?', 'Курс доступен ' + courseAccess + '.' + (sunAccess ? ' Мастер-класс — ' + sunAccess + '.' : '')]
+      ? 'Вместе обучение и мастер-класс стоят ' + fmt(bp) + '. Это на ' + fmt(save) + ' дешевле, чем купить их по отдельности в дни акции.'
+      : 'Вместе обучение и мастер-класс стоят ' + fmt(bp) + '.'],
+    ['Как долго доступны материалы?', 'Обучение доступно ' + courseAccess + '.' + (sunAccess ? ' Мастер-класс — ' + sunAccess + '.' : '')]
   ];
   var faqBox = $('faq');
   FAQ.forEach(function (f, i) {
@@ -308,7 +308,7 @@
     [maxPct ? 'Скидки до ' + maxPct : 'Скидки на обучение', '#FFFFFF'],
     [dateStr ? 'Только до ' + dateStr : 'Только сейчас', '#BDBDBD']
   ];
-  if (save > 0) phrases.push(['Курс + мастер-класс за ' + fmt(bp), '#FFFFFF']);
+  if (save > 0) phrases.push(['Обучение + мастер-класс за ' + fmt(bp), '#FFFFFF']);
   var mq = $('marquee');
   for (var r = 0; r < 4; r++) phrases.forEach(function (p) {
     var s1 = el('span', 'marquee__t', typo(p[0])); s1.style.color = p[1];

@@ -17,9 +17,9 @@ window.SITE_CONFIG = {
   bundlePrice: 5780,
 
   // Ссылки на оплату
-  courseCheckoutUrl: '',
-  sunmakeupCheckoutUrl: '',
-  bundleCheckoutUrl: '',
+  courseCheckoutUrl: 'https://payform.ru/nud4MpL/',
+  sunmakeupCheckoutUrl: 'https://payform.ru/and4MiJ/',
+  bundleCheckoutUrl: 'https://payform.ru/snd4Msj/',
 
   // Сроки доступа
   courseAccess: '3 месяца',
